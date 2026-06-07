@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.env.local
+.env.production
+*.egg-info/
+dist/
+build/
+
+# Database (do NOT commit the local db)
+backend/hunter.db
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Node (if any)
+node_modules/
+.npm
+
+# Vercel
+.vercel
+
+# Secrets
+*.pem
+*.key

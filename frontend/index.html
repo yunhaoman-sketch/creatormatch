@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CreatorMatch · AI海外达人精准匹配 | TikTok达人 Instagram达人智能搜索</title>
+  <meta name="description" content="CreatorMatch — AI驱动的海外达人营销平台，精准匹配TikTok达人、Instagram达人、YouTube达人。支持多维度筛选、水军风险检测、一键生成合作话术，助力品牌出海。" />
+  <meta name="keywords" content="海外达人,TikTok达人,Instagram达人,网红营销,达人营销,KOL,KOC,出海营销,跨境电商,创作者营销,CreatorMatch,influencer marketing" />
+  <meta name="author" content="CreatorMatch" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="CreatorMatch · AI海外达人精准匹配平台" />
+  <meta property="og:description" content="AI驱动精准匹配TikTok、Instagram、YouTube海外达人，水军检测+话术生成，助力品牌全球营销。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://creatormatch.vercel.app/og-image.png" />
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="CreatorMatch · AI海外达人精准匹配" />
+  <meta name="twitter:description" content="AI驱动精准匹配TikTok达人、Instagram达人，水军风险检测+合作话术生成。" />
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d14;
+      --bg2: #13131f;
+      --bg3: #1a1a2e;
+      --surface: #1e1e30;
+      --surface2: #252540;
+      --surface3: #2e2e50;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.13);
+      --text: #f0f0f8;
+      --text2: #a0a0c0;
+      --text3: #60608a;
+      --tiktok: #ff2d55;
+      --instagram: #E1306C;
+      --xhs: #ff3040;
+      --accent: #7c6aff;
+      --accent2: #a855f7;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --orange: #f97316;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 48px rgba(0,0,0,0.6);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+    /* ── Layout ── */
+    #app { display: flex; flex-direction: column; min-height: 100vh; }
+    .page-wrap { flex: 1; max-width: 1280px; margin: 0 auto; width: 100%; padding: 24px 20px; }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,13,20,0.9); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .navbar-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 18px; font-weight: 700; cursor: pointer;
+      background: linear-gradient(135deg, #7c6aff, #a855f7, #ec4899);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .navbar-right { display: flex; align-items: center; gap: 12px; }
+    .nav-btn {
+      background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px;
+      padding: 6px 14px; font-size: 13px; font-weight: 600; color: var(--text2);
+      cursor: pointer; transition: all 0.2s; position: relative;
+    }
+    .nav-btn:hover { color: var(--text); border-color: var(--accent); }
+    .nav-btn.active { background: rgba(124,106,255,0.2); border-color: var(--accent); color: var(--accent); }
+    .nav-icon-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-size: 16px; background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); transition: all 0.2s; }
+    .nav-icon-btn:hover { color: var(--text); border-color: var(--accent); }
+    .nav-icon-btn.configured { background: rgba(16,185,129,.15); border-color: var(--green); color: var(--green); }
+    .badge-dot {
+      position: absolute; top: -4px; right: -4px;
+      background: var(--red); border-radius: 50%;
+      width: 16px; height: 16px; font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; color: white;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 64px 20px 48px; text-align: center;
+      background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(124,106,255,0.13) 0%, transparent 70%);
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(124,106,255,0.15); border: 1px solid rgba(124,106,255,0.3);
+      border-radius: 20px; padding: 4px 14px;
+      font-size: 12px; color: #a78bfa; font-weight: 600; margin-bottom: 18px;
+    }
+    .hero h1 { font-size: clamp(28px, 5vw, 52px); font-weight: 800; line-height: 1.2; margin-bottom: 14px; }
+    .hero h1 .gradient {
+      background: linear-gradient(135deg, #7c6aff 0%, #a855f7 40%, #ec4899 80%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p { font-size: 16px; color: var(--text2); max-width: 520px; margin: 0 auto 40px; }
+    .hero-stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 56px; }
+    .hero-stat .num { font-size: 26px; font-weight: 800; }
+    .hero-stat .label { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+    /* ── Platform Cards ── */
+    .platform-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; max-width: 900px; margin: 0 auto; }
+    .section-label { text-align: center; font-size: 12px; font-weight: 600; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 28px; }
+    .pcard {
+      position: relative; overflow: hidden;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 24px;
+      cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .pcard::before { content:''; position:absolute; inset:0; opacity:0; transition: opacity 0.3s; border-radius: var(--radius); }
+    .pcard.tiktok::before { background: linear-gradient(135deg, rgba(255,45,85,.1), rgba(0,242,234,.08)); }
+    .pcard.instagram::before { background: linear-gradient(135deg, rgba(225,48,108,.1), rgba(247,119,55,.08)); }
+    .pcard.xhs::before { background: linear-gradient(135deg, rgba(255,48,64,.1), rgba(255,107,122,.08)); }
+    .pcard:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--border2); }
+    .pcard:hover::before { opacity: 1; }
+    .pcard-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 18px; }
+    .tiktok .pcard-icon { background: #1a1a1a; }
+    .instagram .pcard-icon { background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); }
+    .xhs .pcard-icon { background: linear-gradient(135deg, #ff3040, #ff6b7a); }
+    .pcard h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .pcard p { font-size: 13px; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
+    .pcard-meta { display: flex; gap: 12px; flex-wrap: wrap; }
+    .pcard-meta span { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .tiktok .dot { background: var(--tiktok); }
+    .instagram .dot { background: var(--instagram); }
+    .xhs .dot { background: var(--xhs); }
+    .pcard-badge { position: absolute; top: 14px; right: 14px; background: rgba(124,106,255,.2); border: 1px solid rgba(124,106,255,.3); color: #a78bfa; border-radius: 16px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
+    .pcard-arrow { position: absolute; right: 20px; bottom: 28px; color: var(--text3); font-size: 18px; transition: all 0.3s; }
+    .pcard:hover .pcard-arrow { transform: translateX(4px); color: var(--text); }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text3); margin-bottom: 20px; }
+    .crumb { cursor: pointer; transition: color 0.2s; } .crumb:hover { color: var(--text2); }
+    .sep { color: var(--text3); } .current { color: var(--text2); }
+
+    /* ── Search Panel ── */
+    .search-panel {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px;
+    }
+    .search-panel-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .plat-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; padding: 5px 12px; font-size: 13px; font-weight: 700; }
+    .plat-pill.tiktok { background: rgba(255,45,85,.15); color: #ff2d55; }
+    .plat-pill.instagram { background: rgba(225,48,108,.15); color: #E1306C; }
+    .plat-pill.xhs { background: rgba(255,48,64,.15); color: #ff3040; }
+    .search-panel-header h2 { font-size: 19px; font-weight: 700; }
+
+    .search-input-wrap { position: relative; margin-bottom: 16px; }
+    .search-textarea {
+      width: 100%; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+      padding: 14px 16px; color: var(--text); font-size: 14px; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s; resize: vertical; min-height: 90px;
+      font-family: inherit; line-height: 1.6;
+    }
+    .search-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,106,255,.15); }
+    .search-textarea::placeholder { color: var(--text3); }
+    .char-count { position: absolute; right: 12px; bottom: 10px; font-size: 11px; color: var(--text3); }
+
+    /* Example chips */
+    .example-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .chip {
+      background: var(--bg2); border: 1px solid var(--border2); border-radius: 20px;
+      padding: 4px 12px; font-size: 12px; color: var(--text3); cursor: pointer; transition: all 0.2s;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Filters row */
+    .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text3); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .form-select, .form-input {
+      width: 100%; background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-sm);
+      padding: 9px 12px; color: var(--text); font-size: 13px; outline: none;
+      transition: border-color 0.2s; font-family: inherit;
+    }
+    .form-select { appearance: none; cursor: pointer; }
+    .form-select option { background: var(--bg2); }
+    .form-input:focus, .form-select:focus { border-color: var(--accent); }
+    .budget-row { display: flex; align-items: center; gap: 6px; }
+    .budget-row .form-input { flex: 1; }
+    .budget-sep { color: var(--text3); font-size: 13px; flex-shrink: 0; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: none; border-radius: var(--radius-sm); padding: 11px 20px;
+      font-size: 14px; font-weight: 600; cursor: pointer; outline: none;
+      transition: all 0.2s; white-space: nowrap; font-family: inherit;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,106,255,.4); }
+    .btn-secondary { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2); }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .btn-success { background: rgba(16,185,129,.15); color: var(--green); border: 1px solid rgba(16,185,129,.3); }
+    .btn-success:hover:not(:disabled) { background: rgba(16,185,129,.25); }
+    .btn-danger { background: rgba(239,68,68,.12); color: var(--red); border: 1px solid rgba(239,68,68,.25); }
+    .btn-danger:hover:not(:disabled) { background: rgba(239,68,68,.22); }
+    .btn-sm { padding: 6px 13px; font-size: 12px; }
+    .btn-icon { padding: 7px; border-radius: 8px; }
+    .btn-wide { width: 100%; justify-content: center; }
+
+    /* Spinner */
+    .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.25); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Parse Info Banner ── */
+    .parse-banner {
+      background: rgba(124,106,255,.08); border: 1px solid rgba(124,106,255,.2);
+      border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 20px;
+    }
+    .parse-banner-header { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #a78bfa; margin-bottom: 8px; }
+    .parse-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+    .parse-tag {
+      background: rgba(124,106,255,.15); border: 1px solid rgba(124,106,255,.25);
+      border-radius: 6px; padding: 3px 10px; font-size: 12px; color: #c4b5fd;
+    }
+    .parse-tag.green { background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.25); color: #6ee7b7; }
+
+    /* ── Results Header ── */
+    .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+    .results-meta { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text2); }
+    .results-count { background: var(--surface2); border-radius: 8px; padding: 3px 10px; font-weight: 700; color: var(--text); font-size: 13px; }
+    .ai-badge { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg,rgba(124,106,255,.2),rgba(168,85,247,.2)); border: 1px solid rgba(124,106,255,.3); border-radius: 6px; padding: 3px 9px; font-size: 11px; color: #a78bfa; font-weight: 700; }
+
+    /* Sort tabs */
+    .sort-tabs { display: flex; gap: 6px; }
+    .sort-tab { padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border2); background: var(--surface); color: var(--text3); transition: all 0.2s; }
+    .sort-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .sort-tab:hover:not(.active) { color: var(--text2); border-color: var(--text3); }
+
+    /* ── Influencer Grid ── */
+    .inf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+
+    /* ── Influencer Card ── */
+    .inf-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 0; transition: all 0.25s; position: relative; overflow: hidden; display: flex; flex-direction: column;
+    }
+    .inf-card:hover { border-color: var(--border2); transform: translateY(-2px); box-shadow: var(--shadow); }
+
+    /* card top stripe */
+    .inf-card-stripe { height: 3px; width: 100%; }
+    .tiktok-stripe { background: linear-gradient(90deg, var(--tiktok), #00f2ea); }
+    .instagram-stripe { background: linear-gradient(90deg, #833ab4, #fd1d1d, #fcb045); }
+    .xhs-stripe { background: linear-gradient(90deg, var(--xhs), #ff6b7a); }
+
+    .inf-card-body { padding: 18px; flex: 1; display: flex; flex-direction: column; }
+
+    /* header row */
+    .inf-header { display: flex; gap: 12px; margin-bottom: 14px; }
+    .inf-rank { width: 22px; height: 22px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--text3); flex-shrink: 0; margin-top: 4px; }
+    .inf-rank.top3 { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; border-color: transparent; }
+    .inf-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; border: 2px solid var(--border2); overflow: hidden; }
+    .inf-meta { flex: 1; min-width: 0; }
+    .inf-nickname { font-weight: 700; font-size: 15px; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .inf-region { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+    .inf-tier { display: inline-block; border-radius: 5px; padding: 1px 7px; font-size: 10px; font-weight: 700; margin-top: 4px; }
+    .tier-head { background: rgba(168,85,247,.15); color: #c084fc; }
+    .tier-mid { background: rgba(124,106,255,.15); color: #a78bfa; }
+    .tier-tail { background: rgba(96,160,250,.15); color: #93c5fd; }
+
+    /* match score */
+    .match-score-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .match-bar-wrap { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+    .match-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), #10b981); transition: width 0.8s ease; }
+    .match-score-num { font-size: 13px; font-weight: 700; color: var(--green); white-space: nowrap; }
+    .match-reason-text { font-size: 12px; color: var(--text3); margin-bottom: 12px; line-height: 1.5; }
+    .match-reason-text .reason-chip { display: inline-block; background: rgba(124,106,255,.1); border-radius: 4px; padding: 1px 6px; margin: 1px 2px; color: #c4b5fd; font-size: 11px; }
+
+    /* stats */
+    .inf-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .stat-box { background: var(--bg2); border-radius: 8px; padding: 8px 4px; text-align: center; }
+    .stat-val { font-size: 14px; font-weight: 700; }
+    .stat-key { font-size: 10px; color: var(--text3); margin-top: 1px; }
+
+    /* tags */
+    .inf-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+    .tag { background: var(--surface2); border-radius: 5px; padding: 3px 8px; font-size: 11px; color: var(--text2); border: 1px solid var(--border); }
+
+    /* price & risk row */
+    .inf-bottom-row { margin-top: auto; }
+    .price-risk-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 12px 0 10px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .price-block { display: flex; flex-direction: column; gap: 2px; }
+    .price-usd { font-size: 16px; font-weight: 700; color: var(--text); }
+    .price-cny { font-size: 12px; color: var(--text3); }
+    .price-label { font-size: 10px; color: var(--text3); }
+
+    /* Risk Badge */
+    .risk-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .risk-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    }
+    .risk-green { background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3); color: var(--green); }
+    .risk-yellow { background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.3); color: var(--yellow); }
+    .risk-red { background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3); color: var(--red); }
+    .risk-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .risk-green .risk-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .risk-yellow .risk-dot { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .risk-red .risk-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .risk-tooltip {
+      background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px;
+      padding: 8px 12px; font-size: 12px; color: var(--text2); line-height: 1.5;
+      max-width: 220px; text-align: right;
+    }
+    .risk-tooltip-item { display: flex; align-items: flex-start; gap: 4px; justify-content: flex-end; }
+    .risk-tooltip-item::before { content: '·'; color: var(--text3); }
+
+    /* actions */
+    .inf-actions { display: flex; gap: 8px; }
+
+    /* brands */
+    .brands-row { font-size: 11px; color: var(--text3); margin-bottom: 10px; line-height: 1.5; }
+    .brands-row b { color: var(--text2); }
+
+    /* ── Skeleton ── */
+    .shimmer { background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .skeleton-card { height: 380px; border-radius: var(--radius); }
+
+    /* ── Empty ── */
+    .empty-state { text-align: center; padding: 72px 20px; color: var(--text3); }
+    .empty-icon { font-size: 52px; margin-bottom: 14px; opacity: .6; }
+    .empty-title { font-size: 17px; font-weight: 600; color: var(--text2); margin-bottom: 7px; }
+    .empty-desc { font-size: 13px; }
+
+    /* ── Candidates ── */
+    .cand-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    .cand-header h2 { font-size: 21px; font-weight: 700; }
+    .plat-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .plat-filter-btn { padding: 5px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border2); background: var(--surface); color: var(--text3); transition: all 0.2s; }
+    .plat-filter-btn.active { background: rgba(124,106,255,.2); border-color: var(--accent); color: var(--accent); }
+    .plat-filter-btn:hover:not(.active) { color: var(--text2); }
+    .cand-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+    .cand-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: all 0.2s; }
+    .cand-card:hover { border-color: var(--border2); }
+    .cand-top { display: flex; align-items: center; gap: 10px; padding: 16px 16px 12px; }
+    .cand-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .cand-info { flex: 1; min-width: 0; }
+    .cand-name { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cand-plat { font-size: 11px; color: var(--text3); }
+    .cand-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; padding: 0 12px 12px; }
+    .cand-stat { background: var(--bg2); border-radius: 7px; padding: 7px 4px; text-align: center; }
+    .cand-stat .v { font-size: 13px; font-weight: 700; }
+    .cand-stat .k { font-size: 10px; color: var(--text3); margin-top: 1px; }
+    .cand-actions { display: flex; gap: 0; border-top: 1px solid var(--border); }
+    .cand-btn { flex: 1; background: none; border: none; border-right: 1px solid var(--border); padding: 10px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text2); transition: all 0.2s; font-family: inherit; }
+    .cand-btn:last-child { border-right: none; }
+    .cand-btn:hover { background: var(--surface2); color: var(--text); }
+    .cand-btn.red:hover { background: rgba(239,68,68,.1); color: var(--red); }
+    .cand-btn.green:hover { background: rgba(16,185,129,.1); color: var(--green); }
+
+    /* ── Modal ── */
+    .modal-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.75); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn .2s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .modal { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 580px; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp .3s ease; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .modal-title { font-size: 17px; font-weight: 700; }
+    .modal-close { background: var(--surface2); border: none; border-radius: 8px; width: 30px; height: 30px; cursor: pointer; color: var(--text2); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background .2s; }
+    .modal-close:hover { background: var(--surface3); color: var(--text); }
+    .modal-inf { background: var(--bg2); border-radius: 10px; padding: 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+    .script-area { background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px; padding: 14px; font-size: 13px; line-height: 1.7; color: var(--text); white-space: pre-wrap; margin-bottom: 14px; max-height: 260px; overflow-y: auto; font-family: inherit; }
+    .modal-foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+    .subject-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .subj-label { font-size: 11px; color: var(--text3); font-weight: 600; white-space: nowrap; }
+    .subj-val { font-size: 12px; color: var(--text2); }
+
+    /* ── Toast ── */
+    .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 300; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast { background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 11px 16px; font-size: 13px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; animation: toastIn .3s ease; box-shadow: var(--shadow); }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+    .toast.success { border-color: rgba(16,185,129,.4); }
+    .toast.error { border-color: rgba(239,68,68,.4); }
+    .toast.warn { border-color: rgba(245,158,11,.4); }
+
+    /* ── Candidate Table (cross-platform) ── */
+    .cand-table-wrap { overflow-x: auto; margin-bottom: 20px; }
+    .cand-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .cand-table th {
+      background: var(--bg2); padding: 10px 12px; text-align: left;
+      font-size: 11px; font-weight: 700; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border2); white-space: nowrap;
+    }
+    .cand-table td {
+      padding: 12px; border-bottom: 1px solid var(--border);
+      vertical-align: middle; color: var(--text2);
+    }
+    .cand-table tr:hover td { background: rgba(124,106,255,.04); }
+    .cand-table .plat-cell { white-space: nowrap; }
+    .plat-cell .plat-icon { font-size: 15px; margin-right: 5px; }
+    .cand-table .name-cell { font-weight: 700; color: var(--text); white-space: nowrap; }
+    .cand-table .region-cell { color: var(--text3); font-size: 12px; }
+    .cand-table .price-cell { font-weight: 700; color: var(--text); white-space: nowrap; }
+    .cand-table .price-cell .cny { font-size: 11px; color: var(--text3); font-weight: 400; }
+    .cand-table .time-cell { font-size: 11px; color: var(--text3); white-space: nowrap; }
+    .cand-table .act-cell { white-space: nowrap; }
+    .cand-table .cb { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+    .batch-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); padding: 10px 16px; margin-bottom: 14px;
+    }
+    .batch-bar .count { font-size: 13px; color: var(--text2); font-weight: 600; }
+    .batch-bar .count b { color: var(--accent); }
+
+    /* ── Modal: language/tone/extra ── */
+    .modal-options { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .opt-group { display: flex; flex-direction: column; gap: 4px; }
+    .opt-group label { font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.5px; text-transform: uppercase; }
+    .opt-pills { display: flex; gap: 6px; }
+    .opt-pill {
+      padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border2); background: var(--bg2);
+      color: var(--text3); transition: all 0.2s;
+    }
+    .opt-pill:hover { border-color: var(--text3); color: var(--text2); }
+    .opt-pill.active { background: rgba(124,106,255,.2); border-color: var(--accent); color: var(--accent); }
+    .extra-textarea {
+      width: 100%; background: var(--bg2); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); padding: 10px 12px; color: var(--text);
+      font-size: 13px; outline: none; resize: vertical; min-height: 52px;
+      font-family: inherit; line-height: 1.5; margin-bottom: 14px;
+    }
+    .extra-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,106,255,.15); }
+    .extra-textarea::placeholder { color: var(--text3); }
+
+    /* Page Transitions */
+    .page-enter-active, .page-leave-active { transition: opacity .2s, transform .2s; }
+    .page-enter-from { opacity: 0; transform: translateY(8px); }
+    .page-leave-to { opacity: 0; transform: translateY(-8px); }
+
+    /* ── Email Config Modal ── */
+    .email-config-modal {}
+    .preset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-bottom: 16px; }
+    .preset-btn {
+      background: var(--surface); border: 1px solid var(--border2); border-radius: 10px;
+      padding: 12px; cursor: pointer; text-align: center; transition: all 0.2s;
+    }
+    .preset-btn:hover { border-color: var(--accent); background: rgba(124,106,255,.06); }
+    .preset-btn.active { border-color: var(--accent); background: rgba(124,106,255,.15); }
+    .preset-btn .preset-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .preset-btn .preset-host { font-size: 11px; color: var(--text3); margin-top: 3px; }
+    .email-status-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+    .email-status-badge.sent { background: rgba(16,185,129,.15); color: var(--green); }
+    .email-status-badge.pending { background: var(--surface2); color: var(--text3); }
+    .email-status-badge.failed { background: rgba(239,68,68,.15); color: var(--red); }
+    .test-ok { background: rgba(16,185,129,.12); color: var(--green); border: 1px solid rgba(16,185,129,.3); }
+    .test-fail { background: rgba(239,68,68,.12); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .hero { padding: 44px 16px 32px; }
+      .inf-grid { grid-template-columns: 1fr; }
+      .cand-grid { grid-template-columns: 1fr; }
+      .filters-grid { grid-template-columns: 1fr 1fr; }
+      .navbar { padding: 0 14px; }
+      .page-wrap { padding: 16px 14px; }
+      .cand-table { font-size: 12px; }
+      .cand-table th, .cand-table td { padding: 8px 6px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- ── Navbar ── -->
+  <nav class="navbar">
+    <div class="navbar-brand" @click="go('home')">
+      <span style="font-size:20px">🎯</span>AI达人猎手
+    </div>
+    <div class="navbar-right">
+      <div :class="['nav-icon-btn', hasEmailConfig ? 'configured' : '']" @click="emailConfigShow=true" :title="hasEmailConfig ? '邮箱已配置' : '配置发件邮箱'">📧</div>
+      <div class="nav-btn" :class="{ active: page === 'candidates' }" @click="go('candidates')" style="position:relative">
+        📋 候选列表
+        <div class="badge-dot" v-if="candidateCount > 0">{{ candidateCount }}</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── PAGE: Home ── -->
+  <transition name="page" mode="out-in">
+    <div v-if="page === 'home'" key="home">
+      <div class="hero">
+        <div class="hero-eyebrow">✨ AI · 精准匹配 · 海外达人</div>
+        <h1>AI 达人猎手<br><span class="gradient">找到你的海外达人</span></h1>
+        <p>描述你的产品，AI 自动解析受众画像，精准匹配最适合你品牌的达人</p>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="num">30</div><div class="label">模拟达人</div></div>
+          <div class="hero-stat"><div class="num">3</div><div class="label">平台覆盖</div></div>
+          <div class="hero-stat"><div class="num">10+</div><div class="label">目标市场</div></div>
+          <div class="hero-stat"><div class="num">AI</div><div class="label">智能解析</div></div>
+        </div>
+      </div>
+      <div style="padding: 0 20px 72px">
+        <div class="section-label">选择平台开始搜索</div>
+        <div class="platform-grid">
+          <!-- TikTok -->
+          <div class="pcard tiktok" @click="go('search', 'tiktok')">
+            <div class="pcard-badge">10 位达人</div>
+            <div class="pcard-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.9a8.18 8.18 0 0 0 4.78 1.52V7.05a4.85 4.85 0 0 1-1.01-.36z" fill="#ff2d55"/>
+              </svg>
+            </div>
+            <h3>TikTok</h3>
+            <p>短视频平台，覆盖美国、英国、东南亚等核心市场</p>
+            <div class="pcard-meta">
+              <span><div class="dot"></div>美国·英国</span>
+              <span><div class="dot"></div>东南亚</span>
+              <span><div class="dot"></div>澳洲</span>
+            </div>
+            <div class="pcard-arrow">›</div>
+          </div>
+          <!-- Instagram -->
+          <div class="pcard instagram" @click="go('search', 'instagram')">
+            <div class="pcard-badge">10 位达人</div>
+            <div class="pcard-icon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="2" width="20" height="20" rx="5" fill="url(#ig2)"/>
+                <circle cx="12" cy="12" r="4.5" stroke="white" stroke-width="2"/>
+                <circle cx="17.5" cy="6.5" r="1.2" fill="white"/>
+                <defs><linearGradient id="ig2" x1="2" y1="22" x2="22" y2="2"><stop offset="0%" stop-color="#f09433"/><stop offset="25%" stop-color="#e6683c"/><stop offset="50%" stop-color="#dc2743"/><stop offset="75%" stop-color="#cc2366"/><stop offset="100%" stop-color="#bc1888"/></linearGradient></defs>
+              </svg>
+            </div>
+            <h3>Instagram</h3>
+            <p>图文与Reels平台，欧洲、中东、日韩市场影响力强</p>
+            <div class="pcard-meta">
+              <span><div class="dot"></div>欧洲</span>
+              <span><div class="dot"></div>日韩</span>
+              <span><div class="dot"></div>中东</span>
+            </div>
+            <div class="pcard-arrow">›</div>
+          </div>
+          <!-- 小红书 -->
+          <div class="pcard xhs" @click="go('search', 'xiaohongshu')">
+            <div class="pcard-badge">10 位达人</div>
+            <div class="pcard-icon">
+              <svg width="26" height="26" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="#FF3040"/><text x="50" y="70" text-anchor="middle" font-size="60" fill="white" font-weight="bold">小</text></svg>
+            </div>
+            <h3>小红书</h3>
+            <p>海外华人聚集地，英美澳日等国华人及留学生社区</p>
+            <div class="pcard-meta">
+              <span><div class="dot"></div>海外华人</span>
+              <span><div class="dot"></div>留学生</span>
+              <span><div class="dot"></div>中文内容</span>
+            </div>
+            <div class="pcard-arrow">›</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Search ── -->
+    <div v-else-if="page === 'search'" key="search" class="page-wrap">
+      <div class="breadcrumb">
+        <span class="crumb" @click="go('home')">🏠 首页</span>
+        <span class="sep">›</span>
+        <span class="current">{{ platLabel(curPlat) }} 达人搜索</span>
+      </div>
+
+      <!-- Search Panel -->
+      <div class="search-panel">
+        <div class="search-panel-header">
+          <div :class="['plat-pill', platPillClass(curPlat)]">
+            {{ platEmoji(curPlat) }} {{ platLabel(curPlat) }}
+          </div>
+          <h2>AI 精准匹配达人</h2>
+        </div>
+
+        <!-- Big textarea -->
+        <div class="search-input-wrap">
+          <textarea class="search-textarea"
+            v-model="sForm.userInput"
+            :placeholder="searchPlaceholder"
+            rows="4"
+            maxlength="500"
+          ></textarea>
+          <span class="char-count">{{ sForm.userInput.length }}/500</span>
+        </div>
+
+        <!-- Example chips -->
+        <div class="example-chips">
+          <span style="font-size:12px; color:var(--text3); align-self:center">试试：</span>
+          <div class="chip" v-for="ex in exampleInputs" :key="ex" @click="sForm.userInput = ex">{{ ex }}</div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-grid">
+          <div class="form-group">
+            <label>目标地区</label>
+            <select class="form-select" v-model="sForm.region">
+              <option value="">不限</option>
+              <option>美国</option>
+              <option>英国</option>
+              <option>东南亚</option>
+              <option>欧洲</option>
+              <option>澳大利亚</option>
+              <option>日本</option>
+              <option>韩国</option>
+              <option>中东</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>达人层级</label>
+            <select class="form-select" v-model="sForm.tier">
+              <option value="">不限</option>
+              <option value="head">头部 (&gt;500k粉丝)</option>
+              <option value="mid">腰部 (50k-500k)</option>
+              <option value="tail">尾部 (&lt;50k)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>预算范围 (USD)</label>
+            <div class="budget-row">
+              <input class="form-input" type="number" v-model.number="sForm.budgetMin" placeholder="最低" min="0" />
+              <span class="budget-sep">–</span>
+              <input class="form-input" type="number" v-model.number="sForm.budgetMax" placeholder="最高" min="0" />
+            </div>
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end">
+            <button class="btn btn-primary btn-wide" @click="doSearch" :disabled="searching || !sForm.userInput.trim()">
+              <div class="spinner" v-if="searching"></div>
+              <span v-else>🔍</span>
+              {{ searching ? 'AI 匹配中...' : 'AI 智能匹配' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton -->
+      <div v-if="searching" class="inf-grid">
+        <div v-for="i in 6" :key="i" class="shimmer skeleton-card"></div>
+      </div>
+
+      <!-- Parsed Input Banner -->
+      <div class="parse-banner" v-if="!searching && parsedInput && hasSearched">
+        <div class="parse-banner-header">✨ AI 解析结果</div>
+        <div class="parse-tags">
+          <span class="parse-tag" v-if="parsedInput.product_type">🛍️ {{ parsedInput.product_type }}</span>
+          <span class="parse-tag green" v-if="parsedInput.target_market">📍 {{ parsedInput.target_market }}</span>
+          <span class="parse-tag" v-if="parsedInput.audience_gender">👤 {{ genderLabel(parsedInput.audience_gender) }}</span>
+          <span class="parse-tag" v-if="parsedInput.audience_ethnicity">🌍 {{ parsedInput.audience_ethnicity }}</span>
+          <span class="parse-tag" v-if="parsedInput.audience_age_min">🎂 {{ parsedInput.audience_age_min }}-{{ parsedInput.audience_age_max }}岁</span>
+          <span class="parse-tag" v-for="n in (parsedInput.niche_categories||[])" :key="n">🏷️ {{ n }}</span>
+          <span class="parse-tag" v-if="parsedInput.price_range_usd">${{ parsedInput.price_range_usd.min }}-${{ parsedInput.price_range_usd.max }}</span>
+          <span v-if="parsedInput._source==='llm'" style="font-size:11px;color:#6ee7b7;align-self:center">⚡ LLM解析</span>
+          <span v-else style="font-size:11px;color:var(--text3);align-self:center">📐 规则解析</span>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div v-if="!searching && results.length > 0">
+        <div class="results-header">
+          <div class="results-meta">
+            <span>匹配到</span>
+            <span class="results-count">{{ results.length }}</span>
+            <span>位达人</span>
+            <span class="ai-badge">✨ AI 匹配</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div class="sort-tabs">
+              <div :class="['sort-tab', sortBy==='match'?'active':'']" @click="sortBy='match'">匹配度</div>
+              <div :class="['sort-tab', sortBy==='followers'?'active':'']" @click="sortBy='followers'">粉丝量</div>
+              <div :class="['sort-tab', sortBy==='risk'?'active':'']" @click="sortBy='risk'">风险低→高</div>
+            </div>
+            <button class="btn btn-sm btn-secondary" @click="go('candidates')">
+              📋 候选 ({{ candidateCount }})
+            </button>
+          </div>
+        </div>
+        <div class="inf-grid">
+          <div v-for="(inf, idx) in sortedResults" :key="inf.id" class="inf-card">
+            <!-- stripe -->
+            <div :class="['inf-card-stripe', platStripeClass(curPlat)]"></div>
+            <div class="inf-card-body">
+              <!-- header -->
+              <div class="inf-header">
+                <div :class="['inf-rank', idx < 3 ? 'top3' : '']">{{ idx + 1 }}</div>
+                <div class="inf-avatar">{{ avatarEmoji(inf) }}</div>
+                <div class="inf-meta">
+                  <div class="inf-nickname">{{ inf.nickname }}</div>
+                  <div class="inf-region">📍 {{ inf.region }}</div>
+                  <span :class="['inf-tier', tierClass(inf.tier)]">{{ inf.tier_label }}</span>
+                </div>
+              </div>
+
+              <!-- match score bar -->
+              <div class="match-score-row">
+                <div class="match-bar-wrap">
+                  <div class="match-bar-fill" :style="{ width: inf.match_score + '%' }"></div>
+                </div>
+                <span class="match-score-num">{{ inf.match_score }}% 匹配</span>
+              </div>
+
+              <!-- match reasons -->
+              <div class="match-reason-text" v-if="inf.match_reasons_list && inf.match_reasons_list.length">
+                <span class="reason-chip" v-for="r in inf.match_reasons_list.slice(0,3)" :key="r">{{ r }}</span>
+              </div>
+
+              <!-- stats -->
+              <div class="inf-stats">
+                <div class="stat-box">
+                  <div class="stat-val">{{ inf.followers }}</div>
+                  <div class="stat-key">粉丝</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-val">{{ inf.avg_likes }}</div>
+                  <div class="stat-key">均赞</div>
+                </div>
+                <div class="stat-box">
+                  <div class="stat-val">{{ inf.engagement_rate }}</div>
+                  <div class="stat-key">互动率</div>
+                </div>
+              </div>
+
+              <!-- tags -->
+              <div class="inf-tags">
+                <span class="tag" v-for="t in inf.tags" :key="t">{{ t }}</span>
+              </div>
+
+              <!-- brands -->
+              <div class="brands-row">
+                曾合作：<b>{{ (inf.past_brands||[]).join(' · ') }}</b>
+              </div>
+
+              <!-- bottom: price + risk -->
+              <div class="inf-bottom-row">
+                <div class="price-risk-row">
+                  <div class="price-block">
+                    <div class="price-label">预估报价</div>
+                    <div class="price-usd">{{ inf.price_usd_display || inf.price_display }}</div>
+                    <div class="price-cny" v-if="inf.price_cny_display">≈ {{ inf.price_cny_display }}</div>
+                  </div>
+                  <!-- Risk badge with tooltip -->
+                  <div class="risk-block">
+                    <div :class="['risk-badge', riskBadgeClass(inf.fake_risk_level)]"
+                      @click="toggleRisk(inf.id)">
+                      <div class="risk-dot"></div>
+                      {{ inf.fake_risk_label }} {{ inf.fake_risk_score }}%
+                      <span style="font-size:11px;opacity:.7">{{ expandedRisk === inf.id ? '▲' : '▼' }}</span>
+                    </div>
+                    <transition name="page">
+                      <div class="risk-tooltip" v-if="expandedRisk === inf.id">
+                        <div class="risk-tooltip-item" v-for="r in (inf.fake_risk_reasons||[])" :key="r" style="margin-bottom:4px">{{ r }}</div>
+                      </div>
+                    </transition>
+                  </div>
+                </div>
+                <div class="inf-actions">
+                  <button class="btn btn-sm btn-secondary" style="flex:1" @click="openOutreach(inf)">💬 生成话术</button>
+                  <button class="btn btn-sm btn-primary" style="flex:1" @click="addToShortlist(inf)">+ 加入候选</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty / Initial -->
+      <div v-if="!searching && hasSearched && results.length === 0" class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">暂无匹配结果</div>
+        <div class="empty-desc">尝试放宽筛选条件，或修改产品描述</div>
+      </div>
+      <div v-if="!searching && !hasSearched" class="empty-state">
+        <div class="empty-icon">{{ platEmoji(curPlat) }}</div>
+        <div class="empty-title">在 {{ platLabel(curPlat) }} 上精准找达人</div>
+        <div class="empty-desc">用自然语言描述你的产品和目标用户，AI 帮你匹配最合适的达人</div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Candidates ── -->
+    <div v-else-if="page === 'candidates'" key="candidates" class="page-wrap">
+      <div class="breadcrumb">
+        <span class="crumb" @click="go('home')">🏠 首页</span>
+        <span class="sep">›</span>
+        <span class="current">候选列表</span>
+      </div>
+      <div class="cand-header">
+        <h2>📋 候选达人列表</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" @click="go('home')">← 继续搜索</button>
+          <button class="btn btn-sm btn-success" v-if="selectedIds.length === 1" @click="openOutreachForSelected">💬 生成话术</button>
+          <button class="btn btn-sm btn-danger" v-if="selectedIds.length > 0" @click="batchRemove">🗑️ 批量移除 ({{ selectedIds.length }})</button>
+        </div>
+      </div>
+
+      <!-- Platform filters -->
+      <div class="plat-filters">
+        <div :class="['plat-filter-btn', candFilter==='all'?'active':'']" @click="candFilter='all'; selectedIds=[]">全部 ({{ candidates.length }})</div>
+        <div :class="['plat-filter-btn', candFilter==='tiktok'?'active':'']" @click="candFilter='tiktok'; selectedIds=[]">🎵 TikTok ({{ countBy('tiktok') }})</div>
+        <div :class="['plat-filter-btn', candFilter==='instagram'?'active':'']" @click="candFilter='instagram'; selectedIds=[]">📸 Instagram ({{ countBy('instagram') }})</div>
+        <div :class="['plat-filter-btn', candFilter==='xiaohongshu'?'active':'']" @click="candFilter='xiaohongshu'; selectedIds=[]">📕 小红书 ({{ countBy('xiaohongshu') }})</div>
+      </div>
+
+      <!-- Batch bar -->
+      <div class="batch-bar" v-if="selectedIds.length > 0">
+        <span class="count">已选 <b>{{ selectedIds.length }}</b> 位达人</span>
+        <button class="btn btn-sm btn-success" @click="openOutreachForSelected" :disabled="selectedIds.length !== 1">💬 生成话术</button>
+        <button class="btn btn-sm btn-danger" @click="batchRemove">🗑️ 批量移除</button>
+        <button class="btn btn-sm btn-secondary" @click="selectedIds=[]">清除选择</button>
+      </div>
+
+      <!-- Table -->
+      <div v-if="filteredCandidates.length > 0" class="cand-table-wrap">
+        <table class="cand-table">
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox" class="cb" @change="toggleSelectAll" :checked="isAllSelected" /></th>
+              <th>平台</th>
+              <th>昵称</th>
+              <th>粉丝数</th>
+              <th>地区</th>
+              <th>预估报价</th>
+              <th>加入时间</th>
+              <th>邮件状态</th>
+              <th style="width:160px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="c in filteredCandidates" :key="c.id">
+              <td><input type="checkbox" class="cb" :value="c.id" v-model="selectedIds" /></td>
+              <td class="plat-cell">
+                <span class="plat-icon">{{ platEmoji(c.platform) }}</span>
+                {{ platLabel(c.platform) }}
+              </td>
+              <td class="name-cell">{{ c.data.nickname }}</td>
+              <td>{{ c.data.followers }}</td>
+              <td class="region-cell">{{ c.data.region }}</td>
+              <td class="price-cell">
+                {{ c.data.price_usd_display || c.data.price_display }}
+                <div class="cny" v-if="c.data.price_cny_display">≈ {{ c.data.price_cny_display }}</div>
+              </td>
+              <td class="time-cell">{{ formatTime(c.added_at) }}</td>
+              <td>
+                <span :class="['email-status-badge', c.email_status || 'pending']">
+                  {{ c.email_status === 'sent' ? '✅ 已发送' : '⏳ 待发送' }}
+                </span>
+                <div v-if="c.email_status === 'sent' && c.email_sent_at" style="font-size:10px;color:var(--text3);margin-top:2px">
+                  {{ formatTime(c.email_sent_at) }}
+                </div>
+              </td>
+              <td class="act-cell">
+                <button class="cand-btn green" @click="openOutreach(c.data)" style="border-right:1px solid var(--border)">💬</button>
+                <button class="cand-btn green" @click="sendEmail(c.data)" style="border-right:1px solid var(--border)">📧</button>
+                <button class="cand-btn red" @click="removeCandidate(c.id)">✕</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div v-else class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">候选列表为空</div>
+        <div class="empty-desc">在搜索页点击「加入候选」把达人加进来</div>
+        <div style="margin-top:20px"><button class="btn btn-primary" @click="go('home')">开始搜索</button></div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- ── Modal: Outreach ── -->
+  <transition name="page">
+    <div class="modal-overlay" v-if="modal.show" @click.self="modal.show=false">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">💬 AI 沟通话术生成</div>
+          <button class="modal-close" @click="modal.show=false">✕</button>
+        </div>
+        <div class="modal-inf" v-if="modal.inf">
+          <div style="width:38px;height:38px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">{{ avatarEmoji(modal.inf) }}</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">{{ modal.inf.nickname }}</div>
+            <div style="font-size:12px;color:var(--text3)">{{ platLabel(modal.inf.platform) }} · {{ modal.inf.region }}</div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>品牌名称</label>
+          <input class="form-input" v-model="modal.brandName" placeholder="如：SuperGlow Beauty" @input="refreshScript" />
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label>产品描述</label>
+          <input class="form-input" v-model="modal.productDesc" placeholder="如：针对黑人女性的假发产品，真人发质，$80-120" @input="refreshScript" />
+        </div>
+
+        <!-- Language & Tone -->
+        <div class="modal-options">
+          <div class="opt-group">
+            <label>语言 Language</label>
+            <div class="opt-pills">
+              <div :class="['opt-pill', modal.language==='en'?'active':'']" @click="modal.language='en'; refreshScript()">English</div>
+              <div :class="['opt-pill', modal.language==='zh'?'active':'']" @click="modal.language='zh'; refreshScript()">中文</div>
+            </div>
+          </div>
+          <div class="opt-group">
+            <label>语气 Tone</label>
+            <div class="opt-pills">
+              <div :class="['opt-pill', modal.tone==='professional'?'active':'']" @click="modal.tone='professional'; refreshScript()">专业</div>
+              <div :class="['opt-pill', modal.tone==='friendly'?'active':'']" @click="modal.tone='friendly'; refreshScript()">友好</div>
+              <div :class="['opt-pill', modal.tone==='direct'?'active':'']" @click="modal.tone='direct'; refreshScript()">直接</div>
+            </div>
+          </div>
+        </div>
+        <textarea class="extra-textarea" v-model="modal.extraRequirements" @input="refreshScript"
+          placeholder="额外要求（选填）：如强调免费样品 / 希望视频在两周内发布 / 强调长期合作…"></textarea>
+
+        <div v-if="modal.loading" class="shimmer" style="height:200px;margin-bottom:14px;border-radius:10px"></div>
+        <div v-else>
+          <div class="subject-row"><span class="subj-label">主题：</span><span class="subj-val">{{ modal.subject }}</span></div>
+          <div class="script-area">{{ modal.script }}</div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn btn-secondary btn-sm" @click="copyScript">📋 复制话术</button>
+          <button class="btn btn-primary btn-sm" @click="refreshScript" :disabled="modal.loading">🔄 重新生成</button>
+          <button class="btn btn-success btn-sm" @click="sendEmailFromModal">📧 发送邮件</button>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- ── Modal: Email Config ── -->
+  <transition name="page">
+    <div class="modal-overlay" v-if="emailConfigShow" @click.self="emailConfigShow=false">
+      <div class="modal" style="max-width:540px">
+        <div class="modal-header">
+          <div class="modal-title">📧 配置发件邮箱</div>
+          <button class="modal-close" @click="emailConfigShow=false">✕</button>
+        </div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:14px">配置后可一键发送合作邀约邮件给达人</p>
+        
+        <!-- Preset selection -->
+        <label style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;display:block">快速选择</label>
+        <div class="preset-grid">
+          <div v-for="(preset, key) in smtpPresets" :key="key"
+               :class="['preset-btn', emailConfig.preset===key?'active':'']"
+               @click="selectPreset(key)">
+            <div class="preset-name">{{ key === 'custom' ? '🔧 ' : '' }}{{ preset.label }}</div>
+            <div class="preset-host" v-if="preset.host">{{ preset.host }}:{{ preset.port }}</div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:10px">
+          <label>SMTP服务器地址</label>
+          <input class="form-input" v-model="emailConfig.host" placeholder="smtp.gmail.com" />
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:10px">
+          <div class="form-group" style="flex:1">
+            <label>端口</label>
+            <input class="form-input" v-model.number="emailConfig.port" placeholder="587" />
+          </div>
+          <div class="form-group" style="flex:1">
+            <label>加密方式</label>
+            <select class="form-input" v-model="emailConfig.ssl" style="cursor:pointer">
+              <option :value="false">STARTTLS (587)</option>
+              <option :value="true">SSL/TLS (465)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>邮箱地址</label>
+          <input class="form-input" v-model="emailConfig.username" placeholder="yourname@gmail.com" />
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label>授权码 / 密码</label>
+          <input class="form-input" type="password" v-model="emailConfig.password" placeholder="16位授权码" />
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">
+            提示：Gmail使用应用专用密码；QQ/163使用SMTP授权码；Outlook使用账户密码
+          </div>
+        </div>
+
+        <!-- Test result -->
+        <div v-if="emailTestResult" :class="['test-result', emailTestOk?'test-ok':'test-fail']" style="padding:10px;border-radius:8px;margin-bottom:14px;font-size:13px">
+          {{ emailTestResult }}
+        </div>
+
+        <div class="modal-foot">
+          <button class="btn btn-secondary btn-sm" @click="testEmailConfig" :disabled="emailTesting">
+            {{ emailTesting ? '测试中…' : '🧪 测试发送' }}
+          </button>
+          <button class="btn btn-primary btn-sm" @click="saveEmailConfig">
+            💾 保存配置
+          </button>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- ── Toasts ── -->
+  <div class="toast-wrap">
+    <div v-for="t in toasts" :key="t.id" :class="['toast', t.type]">{{ t.icon }} {{ t.msg }}</div>
+  </div>
+</div>
+
+<script>
+const { createApp, ref, computed, reactive, onMounted } = Vue;
+
+// ── API Base URL 自动检测 ──────────────────────────────────────
+// 优先读取 window.__API_BASE__（由 Vercel 注入或手动配置）
+// 否则根据当前域名自动推断
+const API = (() => {
+  if (window.__API_BASE__) return window.__API_BASE__.replace(/\/$/, '') + '/api';
+  // 生产环境：将 your-backend.onrender.com 改为实际 Render URL
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    // 部署后在此填入 Render 后端 URL，例如：
+    // return 'https://creatormatch-api.onrender.com/api';
+    return window.BACKEND_URL
+      ? window.BACKEND_URL.replace(/\/$/, '') + '/api'
+      : 'https://creatormatch-api.onrender.com/api';
+  }
+  return 'http://localhost:5000/api';
+})();
+
+createApp({
+  setup() {
+    const page = ref('home');
+    const curPlat = ref('tiktok');
+    const searching = ref(false);
+    const hasSearched = ref(false);
+    const results = ref([]);
+    const parsedInput = ref(null);
+    const sortBy = ref('match');
+    const expandedRisk = ref(null);
+    const candidates = ref([]);
+    const candFilter = ref('all');
+    const toasts = ref([]);
+
+    const sForm = reactive({
+      userInput: '',
+      region: '',
+      tier: '',
+      budgetMin: null,
+      budgetMax: null
+    });
+
+    const modal = reactive({
+      show: false, inf: null,
+      brandName: '', productDesc: '',
+      script: '', subject: '', loading: false,
+      language: 'en', tone: 'friendly', extraRequirements: ''
+    });
+
+    // ─── Email Config ──
+    const smtpPresets = {
+      gmail: { label: 'Gmail', host: 'smtp.gmail.com', port: 587, ssl: false },
+      outlook: { label: 'Outlook/Hotmail', host: 'smtp-mail.outlook.com', port: 587, ssl: false },
+      qq: { label: 'QQ邮箱', host: 'smtp.qq.com', port: 587, ssl: false },
+      netease163: { label: '163邮箱', host: 'smtp.163.com', port: 465, ssl: true },
+      netease126: { label: '126邮箱', host: 'smtp.126.com', port: 465, ssl: true },
+      custom: { label: '自定义 / 企业邮箱', host: '', port: 587, ssl: false }
+    };
+
+    function loadEmailConfig() {
+      try {
+        const saved = localStorage.getItem('emailConfig');
+        if (saved) return JSON.parse(saved);
+      } catch (e) {}
+      return { preset: '', host: '', port: 587, ssl: false, username: '', password: '' };
+    }
+
+    const emailConfig = reactive(loadEmailConfig());
+    const emailConfigShow = ref(false);
+    const emailTesting = ref(false);
+    const emailTestResult = ref('');
+    const emailTestOk = ref(false);
+    const emailSending = ref(false);
+
+    const hasEmailConfig = computed(() => !!emailConfig.host && !!emailConfig.username && !!emailConfig.password);
+
+    function selectPreset(key) {
+      const p = smtpPresets[key];
+      if (!p || key === 'custom') {
+        emailConfig.preset = 'custom';
+        emailConfig.host = '';
+        emailConfig.port = 587;
+        emailConfig.ssl = false;
+        return;
+      }
+      emailConfig.preset = key;
+      emailConfig.host = p.host;
+      emailConfig.port = p.port;
+      emailConfig.ssl = p.ssl;
+      emailTestResult.value = '';
+    }
+
+    function saveEmailConfig() {
+      const config = { ...emailConfig };
+      localStorage.setItem('emailConfig', JSON.stringify(config));
+      toast('邮箱配置已保存', 'success');
+      emailConfigShow.value = false;
+    }
+
+    async function testEmailConfig() {
+      if (!emailConfig.host || !emailConfig.username || !emailConfig.password) {
+        emailTestResult.value = '请填写完整的 SMTP 配置信息';
+        emailTestOk.value = false;
+        return;
+      }
+      emailTesting.value = true;
+      emailTestResult.value = '';
+      try {
+        const res = await fetch(`${API}/email/test`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ config: { ...emailConfig } })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          emailTestResult.value = '✅ ' + data.message;
+          emailTestOk.value = true;
+        } else {
+          emailTestResult.value = '❌ ' + data.error;
+          emailTestOk.value = false;
+        }
+      } catch (e) {
+        emailTestResult.value = '❌ 网络错误，无法连接后端服务';
+        emailTestOk.value = false;
+      } finally {
+        emailTesting.value = false;
+      }
+    }
+
+    const selectedIds = ref([]);
+
+    const isAllSelected = computed(() =>
+      filteredCandidates.value.length > 0 && selectedIds.value.length === filteredCandidates.value.length
+    );
+
+    const candidateCount = computed(() => candidates.value.length);
+
+    const sortedResults = computed(() => {
+      const arr = [...results.value];
+      if (sortBy.value === 'followers') return arr.sort((a, b) => (b.followers_num || 0) - (a.followers_num || 0));
+      if (sortBy.value === 'risk') return arr.sort((a, b) => (a.fake_risk_score || 0) - (b.fake_risk_score || 0));
+      return arr.sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
+    });
+
+    const filteredCandidates = computed(() => {
+      if (candFilter.value === 'all') return candidates.value;
+      return candidates.value.filter(c => c.platform === candFilter.value);
+    });
+
+    const exampleInputs = computed(() => {
+      const map = {
+        tiktok: [
+          '产品：假发，真人发，客单价$80-120，目标美国18-35岁黑人女性',
+          '产品：无线耳机，价格$30-60，面向东南亚年轻学生',
+          '产品：控油粉底液，目标美国女性，25-40岁'
+        ],
+        instagram: [
+          '手工有机护肤品，目标欧洲25-45岁女性，注重天然成分',
+          '男士运动服装，目标美国18-30岁健身爱好者',
+          '家居装饰品，目标欧洲30-50岁高收入女性'
+        ],
+        xiaohongshu: [
+          '国产美妆品牌，面向海外华人留学生，价格亲民',
+          '宠物零食，目标在澳洲的华人妈妈群体',
+          '平价护发素，无硅油，目标英美留学生'
+        ]
+      };
+      return map[curPlat.value] || [];
+    });
+
+    const searchPlaceholder = computed(() => {
+      const map = {
+        tiktok: '例：产品：假发，材质真人发，客单价$80-120，目标市场美国，目标用户18-35岁黑人女性\n\nAI 会自动解析你的描述，提取产品类型、目标受众、市场等信息...',
+        instagram: '例：手工有机护肤品牌，主打天然成分，高客单价，目标欧洲25-45岁注重健康的女性用户\n\nAI 会自动解析并精准匹配最适合的 Instagram 达人...',
+        xiaohongshu: '例：一款针对留学生的平价护发素，无硅油配方，目标英美澳的华人群体\n\nAI 会自动解析，匹配海外华人圈影响力达人...'
+      };
+      return map[curPlat.value] || '描述你的产品和目标用户...';
+    });
+
+    function go(p, plat) {
+      page.value = p;
+      if (plat) {
+        curPlat.value = plat;
+        hasSearched.value = false;
+        results.value = [];
+        parsedInput.value = null;
+        sForm.userInput = '';
+      }
+      window.scrollTo(0, 0);
+      if (p === 'candidates') loadCandidates();
+    }
+
+    function platLabel(p) { return { tiktok:'TikTok', instagram:'Instagram', xiaohongshu:'小红书' }[p] || p; }
+    function platEmoji(p) { return { tiktok:'🎵', instagram:'📸', xiaohongshu:'📕' }[p] || '🌐'; }
+    function platPillClass(p) { return { tiktok:'tiktok', instagram:'instagram', xiaohongshu:'xhs' }[p] || ''; }
+    function platStripeClass(p) { return { tiktok:'tiktok-stripe', instagram:'instagram-stripe', xiaohongshu:'xhs-stripe' }[p] || 'tiktok-stripe'; }
+    function tierClass(t) { return { head:'tier-head', mid:'tier-mid', tail:'tier-tail' }[t] || 'tier-mid'; }
+    function genderLabel(g) { return { female:'女性受众', male:'男性受众', all:'全性别' }[g] || g; }
+    function riskBadgeClass(lvl) { return { green:'risk-green', yellow:'risk-yellow', red:'risk-red' }[lvl] || 'risk-yellow'; }
+    function countBy(plat) { return candidates.value.filter(c => c.platform === plat).length; }
+    function toggleRisk(id) { expandedRisk.value = expandedRisk.value === id ? null : id; }
+
+    function avatarEmoji(inf) {
+      const m = { beauty:'💄', fitness:'💪', tech:'📱', food:'🍳', fashion:'👗', lifestyle:'🏠', travel:'✈️', parenting:'👶', pets:'🐾', shopping:'🛍️', education:'📚' };
+      return m[inf?.niche] || '👤';
+    }
+
+    function toast(msg, type = 'success') {
+      const icons = { success:'✅', error:'❌', warn:'⚠️', info:'ℹ️' };
+      const id = Date.now();
+      toasts.value.push({ id, msg, type, icon: icons[type] });
+      setTimeout(() => { toasts.value = toasts.value.filter(t => t.id !== id); }, 3000);
+    }
+
+    async function doSearch() {
+      if (!sForm.userInput.trim()) return;
+      searching.value = true;
+      hasSearched.value = true;
+      results.value = [];
+      parsedInput.value = null;
+      expandedRisk.value = null;
+
+      try {
+        const body = {
+          platform: curPlat.value,
+          user_input: sForm.userInput,
+          limit: 10,
+          tier: sForm.tier || undefined,
+          budget_min: sForm.budgetMin || undefined,
+          budget_max: sForm.budgetMax || undefined,
+          region: sForm.region || undefined
+        };
+        const res = await fetch(`${API}/search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        results.value = data.data || [];
+        parsedInput.value = data.parsed_input || null;
+        if (results.value.length > 0) toast(`找到 ${results.value.length} 位匹配达人`);
+        else toast('暂无匹配，尝试放宽条件', 'warn');
+      } catch (e) {
+        toast('后端连接失败，使用内置数据预览', 'warn');
+        results.value = fallbackResults();
+        parsedInput.value = { _source:'fallback', product_type:'模拟数据', target_market:'全球', niche_categories:[] };
+      } finally {
+        searching.value = false;
+      }
+    }
+
+    function fallbackResults() {
+      const base = {
+        tiktok: [
+          { id:'tt001', platform:'tiktok', nickname:'@beautytips_jess', real_name:'Jessica Moore', region:'美国-洛杉矶', country:'US', followers:'128k', followers_num:128000, avg_likes:'4.5k', avg_comments:230, engagement_rate:'3.5%', price_usd:500, price_display:'$500', price_usd_display:'$500', price_rmb:3625, price_cny_display:'¥3,625', tags:['美妆测评','平价好物','护肤'], past_brands:['Shein','NYX'], niche:'beauty', tier:'mid', tier_label:'腰部 50k-500k', fake_risk_score:18, fake_risk_level:'green', fake_risk_label:'低风险', fake_risk_reasons:['评论/点赞比健康','互动数据正常'], match_score:92, match_reasons_list:['内容领域完全匹配「beauty」','地区匹配（美国-洛杉矶）','互动率3.5%健康稳定'] },
+          { id:'tt005', platform:'tiktok', nickname:'@fashionista_nadia', real_name:'Nadia Williams', region:'英国-曼彻斯特', country:'UK', followers:'512k', followers_num:512000, avg_likes:'18.6k', avg_comments:890, engagement_rate:'3.6%', price_usd:2500, price_display:'$2,500', price_usd_display:'$2,500', price_rmb:18125, price_cny_display:'¥18,125', tags:['时尚穿搭','OOTD','平价潮流'], past_brands:['ASOS','Shein'], niche:'fashion', tier:'head', tier_label:'头部 >500k', fake_risk_score:22, fake_risk_level:'green', fake_risk_label:'低风险', fake_risk_reasons:['各项数据正常'], match_score:85, match_reasons_list:['地区匹配','有品牌合作经验','互动率优秀'] },
+          { id:'tt008', platform:'tiktok', nickname:'@mua_priya', real_name:'Priya Sharma', region:'新加坡', country:'SG', followers:'198k', followers_num:198000, avg_likes:'7.8k', avg_comments:365, engagement_rate:'3.9%', price_usd:750, price_display:'$750', price_usd_display:'$750', price_rmb:5438, price_cny_display:'¥5,438', tags:['彩妆教程','深肤色妆容','南亚美妆'], past_brands:['Fenty Beauty','NYX'], niche:'beauty', tier:'mid', tier_label:'腰部 50k-500k', fake_risk_score:12, fake_risk_level:'green', fake_risk_label:'低风险', fake_risk_reasons:['水军风险极低'], match_score:88, match_reasons_list:['内容领域高度匹配','受众文化背景契合','互动率优秀（3.9%）'] }
+        ],
+        instagram: [
+          { id:'ig001', platform:'instagram', nickname:'@glowup_grace', real_name:'Grace Kim', region:'韩国-首尔', country:'KR', followers:'89k', followers_num:89000, avg_likes:'3.8k', avg_comments:180, engagement_rate:'4.3%', price_usd:420, price_display:'$420', price_usd_display:'$420', price_rmb:3045, price_cny_display:'¥3,045', tags:['护肤','美妆分享','日系清透'], past_brands:['COSRX','Innisfree'], niche:'beauty', tier:'mid', tier_label:'腰部 50k-500k', fake_risk_score:14, fake_risk_level:'green', fake_risk_label:'低风险', fake_risk_reasons:['数据健康'], match_score:90, match_reasons_list:['领域完全匹配','互动率优秀（4.3%）'] },
+          { id:'ig005', platform:'instagram', nickname:'@streetstyle_omar', real_name:'Omar Hassan', region:'美国-纽约', country:'US', followers:'425k', followers_num:425000, avg_likes:'16.8k', avg_comments:720, engagement_rate:'3.9%', price_usd:2200, price_display:'$2,200', price_usd_display:'$2,200', price_rmb:15950, price_cny_display:'¥15,950', tags:['街头潮流','Sneakers','男装搭配'], past_brands:['Nike','Supreme'], niche:'fashion', tier:'mid', tier_label:'腰部 50k-500k', fake_risk_score:30, fake_risk_level:'yellow', fake_risk_label:'中等风险', fake_risk_reasons:['粉丝量较大，互动率需持续观察'], match_score:82, match_reasons_list:['有品牌合作经验','地区匹配'] }
+        ],
+        xiaohongshu: [
+          { id:'xhs001', platform:'xiaohongshu', nickname:'@海外留学妹子Lily', real_name:'王莉莉', region:'英国-伦敦', country:'UK', followers:'56k', followers_num:56000, avg_likes:'2.8k', avg_comments:185, engagement_rate:'5.0%', price_usd:414, price_display:'¥3,000', price_usd_display:'$414', price_rmb:3000, price_cny_display:'¥3,000', tags:['留学生活','英美好物','开箱分享'], past_brands:['完美日记','花西子'], niche:'lifestyle', tier:'mid', tier_label:'腰部 50k-500k', fake_risk_score:10, fake_risk_level:'green', fake_risk_label:'低风险', fake_risk_reasons:['水军风险极低'], match_score:88, match_reasons_list:['互动率优秀（5.0%）','受众华人群体契合'] },
+          { id:'xhs004', platform:'xiaohongshu', nickname:'@日系美妆控Momo', real_name:'刘梦洁', region:'日本-东京', country:'JP', followers:'215k', followers_num:215000, avg_likes:'9.8k', avg_comments:612, engagement_rate:'4.6%', price_usd:1379, price_display:'¥10,000', price_usd_display:'$1,379', price_rmb:10000, price_cny_display:'¥10,000', tags:['日本美妆','日系风格','好物推荐'], past_brands:['资生堂','SK-II'], niche:'beauty', tier:'mid', tier_label:'腰部 50k-500k', fake_risk_score:12, fake_risk_level:'green', fake_risk_label:'低风险', fake_risk_reasons:['数据健康，各项正常'], match_score:95, match_reasons_list:['领域完全匹配','有品牌合作经验','互动率优秀'] }
+        ]
+      };
+      return (base[curPlat.value] || []);
+    }
+
+    function toggleSelectAll(e) {
+      selectedIds.value = e.target.checked ? filteredCandidates.value.map(c => c.id) : [];
+    }
+
+    function openOutreachForSelected() {
+      if (selectedIds.value.length === 0) { toast('请先选择一位达人', 'warn'); return; }
+      const cand = candidates.value.find(c => c.id === selectedIds.value[0]);
+      if (cand) openOutreach(cand.data);
+    }
+
+    async function batchRemove() {
+      if (selectedIds.value.length === 0) return;
+      if (!confirm(`确定要移除选中的 ${selectedIds.value.length} 位达人？`)) return;
+      for (const id of selectedIds.value) {
+        try { await fetch(`${API}/candidates/${id}`, { method: 'DELETE' }); } catch (e) {}
+        candidates.value = candidates.value.filter(c => c.id !== id);
+      }
+      selectedIds.value = [];
+      toast('已批量移除');
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      return d.toLocaleDateString('zh-CN') + ' ' + d.toLocaleTimeString('zh-CN', { hour:'2-digit', minute:'2-digit' });
+    }
+    async function loadCandidates() {
+      try {
+        const res = await fetch(`${API}/candidates?session_id=user1`);
+        const data = await res.json();
+        candidates.value = data.data || [];
+      } catch (e) { /* keep local */ }
+    }
+
+    async function addToShortlist(inf) {
+      try {
+        const res = await fetch(`${API}/candidates`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: 'user1', influencer_id: inf.id })
+        });
+        const data = await res.json();
+        if (data.already_exists) { toast('已在候选列表中', 'warn'); return; }
+        toast(`${inf.nickname} 已加入候选列表`);
+        await loadCandidates();
+      } catch (e) {
+        const exists = candidates.value.find(c => c.influencer_id === inf.id);
+        if (!exists) {
+          candidates.value.push({ id: Date.now(), influencer_id: inf.id, platform: inf.platform, nickname: inf.nickname, data: inf });
+          toast(`${inf.nickname} 已加入候选列表`);
+        } else { toast('已在候选列表中', 'warn'); }
+      }
+    }
+
+    async function removeCandidate(id) {
+      try { await fetch(`${API}/candidates/${id}`, { method: 'DELETE' }); } catch (e) {}
+      candidates.value = candidates.value.filter(c => c.id !== id);
+      toast('已移除');
+    }
+
+    async function openOutreach(inf) {
+      modal.inf = inf;
+      modal.brandName = '';
+      modal.productDesc = sForm.userInput || '';
+      modal.language = 'en';
+      modal.tone = 'friendly';
+      modal.extraRequirements = '';
+      modal.show = true;
+      await refreshScript();
+    }
+
+    async function refreshScript() {
+      if (!modal.inf) return;
+      modal.loading = true;
+      try {
+        const res = await fetch(`${API}/outreach`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            influencer_id: modal.inf.id,
+            user_input: modal.productDesc,
+            brand_name: modal.brandName || 'Your Brand',
+            language: modal.language,
+            tone: modal.tone,
+            extra_requirements: modal.extraRequirements
+          })
+        });
+        const data = await res.json();
+        modal.script = data.script;
+        modal.subject = data.subject;
+      } catch (e) {
+        const isZh = modal.language === 'zh' || modal.inf.platform === 'xiaohongshu';
+        modal.script = isZh
+          ? `嗨 ${modal.inf.nickname}，\n\n我是${modal.brandName || '品牌'}合作负责人，非常喜欢你的内容风格！\n\n我们希望就「${modal.productDesc || '我们的产品'}」展开合作，期待你的回复 😊`
+          : `Hi ${modal.inf.real_name || modal.inf.nickname},\n\nI love your content and I'm reaching out about a collaboration opportunity for "${modal.productDesc || 'our product'}".\n\nLooking forward to connecting!\n\nBest,\n${modal.brandName || 'Brand Team'}`;
+        modal.subject = isZh ? `品牌合作邀请 - ${modal.brandName || '品牌'}` : `Collab Opportunity - ${modal.brandName || 'Brand'}`;
+      } finally { modal.loading = false; }
+    }
+
+    function copyScript() {
+      navigator.clipboard.writeText(`主题：${modal.subject}\n\n${modal.script}`)
+        .then(() => toast('已复制到剪贴板'));
+    }
+
+    async function sendEmail(inf) {
+      // Open the outreach modal for email sending
+      modal.inf = inf;
+      modal.brandName = '';
+      modal.productDesc = sForm.userInput || '';
+      modal.language = 'en';
+      modal.tone = 'friendly';
+      modal.extraRequirements = '';
+      modal.show = true;
+      await refreshScript();
+    }
+
+    async function sendEmailFromModal() {
+      if (!modal.inf) return;
+
+      // Check if email config is set
+      if (!hasEmailConfig.value) {
+        const ok = confirm('尚未配置发件邮箱，是否现在配置？');
+        if (ok) {
+          modal.show = false;
+          emailConfigShow.value = true;
+        }
+        return;
+      }
+
+      emailSending.value = true;
+      try {
+        const res = await fetch(`${API}/email/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            influencer_id: modal.inf.id,
+            subject: modal.subject,
+            body: modal.script,
+            smtp_config: {
+              host: emailConfig.host,
+              port: emailConfig.port,
+              username: emailConfig.username,
+              password: emailConfig.password,
+              ssl: emailConfig.ssl
+            }
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          toast(`📧 邮件已发送至 ${data.to || modal.inf.email || modal.inf.nickname}`);
+          modal.show = false;
+          // Refresh candidate list to update email status
+          await loadCandidates();
+        } else {
+          toast(`${data.error || '发送失败'}`, 'error');
+        }
+      } catch (e) {
+        toast('网络错误，请检查后端服务是否运行', 'error');
+      } finally {
+        emailSending.value = false;
+      }
+    }
+
+    onMounted(loadCandidates);
+
+    return {
+      page, curPlat, searching, hasSearched, results, parsedInput, sortBy, sortedResults,
+      expandedRisk, candidates, candFilter, filteredCandidates, candidateCount,
+      sForm, modal, toasts, exampleInputs, searchPlaceholder,
+      selectedIds, isAllSelected,
+      smtpPresets, emailConfig, emailConfigShow, emailTesting, emailTestResult,
+      emailTestOk, emailSending, hasEmailConfig,
+      go, platLabel, platEmoji, platPillClass, platStripeClass, tierClass,
+      genderLabel, riskBadgeClass, countBy, toggleRisk, avatarEmoji,
+      doSearch, addToShortlist, removeCandidate, openOutreach, refreshScript,
+      copyScript, sendEmail, sendEmailFromModal,
+      toggleSelectAll, openOutreachForSelected, batchRemove, formatTime,
+      selectPreset, saveEmailConfig, testEmailConfig
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
