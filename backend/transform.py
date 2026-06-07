@@ -96,7 +96,7 @@ def _infer_country(region_or_bio_text):
     for key, code in country_map.items():
         if key in text:
             return code
-    return "US"  # default
+    return None  # 无法确定时返回None，由后续逻辑处理
 
 
 def _estimate_price(followers, engagement_rate):

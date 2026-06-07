@@ -413,7 +413,7 @@ def advanced_match(platform_list, parsed_input, filters=None, limit=10):
                 continue
         if region_filter and region_filter != "其他":
             region_countries = MARKET_COUNTRY_MAP.get(region_filter, [])
-            if region_countries and inf_e["country"] not in region_countries:
+            if region_countries and inf_e.get("country") and inf_e["country"] not in region_countries:
                 continue
 
         if inf_e["niche"] in niches:
@@ -429,7 +429,7 @@ def advanced_match(platform_list, parsed_input, filters=None, limit=10):
             else:
                 score += 5
 
-        if inf_e["country"] in target_countries:
+        if inf_e.get("country") and inf_e["country"] in target_countries:
             score += 25
             reasons.append(f"地区匹配（{inf_e['region']}）")
         else:
@@ -810,7 +810,11 @@ def search_influencers():
                     raw = client.search_tiktok_profiles(search_terms, limit * 3)
                     influencers = [transform_tiktok(r) for r in raw]
                 else:
-                    raw = client.search_instagram_profiles(search_terms, limit * 3)
+                    # Instagram 搜索只使用英文关键词
+                    en_terms = [t for t in search_terms if all(ord(c) < 128 for c in t)]
+                    if not en_terms:
+                        en_terms = niches if niches else ["beauty"]
+                    raw = client.search_instagram_profiles(en_terms, limit * 3)
                     influencers = [transform_instagram(r) for r in raw]
 
                 if influencers:
