@@ -38,6 +38,18 @@ from data import (
     TIKTOK_INFLUENCERS, INSTAGRAM_INFLUENCERS, XIAOHONGSHU_INFLUENCERS,
     ALL_INFLUENCERS, NICHE_KEYWORDS, MARKET_COUNTRY_MAP
 )
+from apify_client import ApifyClient
+from transform import transform_tiktok, transform_instagram
+
+# ─── Apify 配置 ───────────────────────────────────────────────
+APIFY_TOKEN = os.environ.get("APIFY_API_TOKEN", "")
+_apify_client = None
+
+def get_apify_client():
+    global _apify_client
+    if _apify_client is None and APIFY_TOKEN:
+        _apify_client = ApifyClient(APIFY_TOKEN)
+    return _apify_client
 
 # ─── 汇率常量 ──────────────────────────────────────────────────
 USD_TO_CNY = 7.25
@@ -729,11 +741,13 @@ Best,
 @app.route("/api/health", methods=["GET"])
 def health():
     has_llm = bool(os.environ.get("OPENAI_API_KEY") or os.environ.get("LLM_API_KEY"))
+    has_apify = bool(os.environ.get("APIFY_API_TOKEN", ""))
     return jsonify({
         "status": "ok",
         "message": "AI达人猎手 API 运行中",
         "llm_enabled": has_llm,
-        "version": "3.0"
+        "apify_enabled": has_apify,
+        "version": "3.1"
     })
 
 @app.route("/api/influencers/<platform>", methods=["GET"])
@@ -780,14 +794,42 @@ def search_influencers():
     if body.get("target_market") and body["target_market"] != "全球":
         parsed["target_market"] = body["target_market"]
 
-    results = advanced_match(data_map[platform], parsed, filters=filters, limit=limit)
+    # ── 尝试 Apify 真实数据（TikTok / Instagram） ──
+    data_source = "local"
+    results = None
+
+    if platform in ("tiktok", "instagram"):
+        client = get_apify_client()
+        if client:
+            try:
+                keywords = parsed.get("product_keywords", [])
+                niches = parsed.get("niche_categories", [])
+                search_terms = list(dict.fromkeys(keywords + niches))  # 去重保序
+
+                if platform == "tiktok":
+                    raw = client.search_tiktok_profiles(search_terms, limit * 3)
+                    influencers = [transform_tiktok(r) for r in raw]
+                else:
+                    raw = client.search_instagram_profiles(search_terms, limit * 3)
+                    influencers = [transform_instagram(r) for r in raw]
+
+                if influencers:
+                    results = advanced_match(influencers, parsed, filters=filters, limit=limit)
+                    data_source = "apify"
+            except Exception as e:
+                print(f"[Apify] 搜索异常，回退本地数据: {e}")
+
+    # ── 回退：本地模拟数据 ──
+    if results is None:
+        results = advanced_match(data_map[platform], parsed, filters=filters, limit=limit)
 
     return jsonify({
         "data": results,
         "total": len(results),
         "platform": platform,
         "parsed_input": parsed,
-        "parse_source": parsed.get("_source", "rule")
+        "parse_source": parsed.get("_source", "rule"),
+        "data_source": data_source
     })
 
 @app.route("/api/outreach", methods=["POST"])
