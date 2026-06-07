@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreatorMatch 部署指南</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117;
+    --bg2: #161b22;
+    --surface: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --accent: #7c6aff;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --orange: #f0883e;
+    --red: #f85149;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+  h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+  h1 span { background: linear-gradient(135deg, #7c6aff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .subtitle { color: var(--text2); margin-bottom: 40px; font-size: 1rem; }
+  h2 { font-size: 1.4rem; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 24px 0 12px; color: var(--blue); }
+  .step-grid { display: grid; gap: 16px; }
+  .step { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; position: relative; }
+  .step-num { position: absolute; top: 20px; right: 20px; background: var(--accent); color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; }
+  .step h4 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+  .step p, .step li { color: var(--text2); font-size: 0.9rem; }
+  .step ul { padding-left: 18px; }
+  .step li { margin: 4px 0; }
+  code { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85rem; color: #f0883e; }
+  pre { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 12px 0; overflow-x: auto; }
+  pre code { background: none; border: none; padding: 0; color: #e6edf3; font-size: 0.85rem; line-height: 1.6; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; margin: 4px 4px 4px 0; }
+  .badge.green { border-color: var(--green); color: var(--green); }
+  .badge.blue { border-color: var(--blue); color: var(--blue); }
+  .badge.orange { border-color: var(--orange); color: var(--orange); }
+  .info-box { background: rgba(88, 166, 255, 0.08); border: 1px solid rgba(88, 166, 255, 0.3); border-radius: 8px; padding: 14px 16px; margin: 12px 0; font-size: 0.9rem; }
+  .warn-box { background: rgba(240, 136, 62, 0.08); border: 1px solid rgba(240, 136, 62, 0.3); border-radius: 8px; padding: 14px 16px; margin: 12px 0; font-size: 0.9rem; }
+  .env-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  .env-table th, .env-table td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+  .env-table th { background: var(--surface); color: var(--text2); font-weight: 600; }
+  .env-table td:first-child { font-family: monospace; color: var(--orange); }
+  .arch { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; margin: 16px 0; }
+  .arch-flow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .arch-node { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; }
+  .arch-node .label { font-size: 0.75rem; color: var(--text2); }
+  .arch-node .name { font-weight: 600; font-size: 0.95rem; }
+  .arch-arrow { color: var(--text2); font-size: 1.4rem; }
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; margin-top: 2px; }
+  .check-icon.done { background: rgba(63, 185, 80, 0.2); color: var(--green); border: 1px solid var(--green); }
+  .check-icon.todo { background: var(--surface); color: var(--text2); border: 1px solid var(--border); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  .tag.required { background: rgba(248, 81, 73, 0.15); color: var(--red); border: 1px solid rgba(248, 81, 73, 0.3); }
+  .tag.optional { background: rgba(63, 185, 80, 0.1); color: var(--green); border: 1px solid rgba(63, 185, 80, 0.3); }
+  .footer { margin-top: 60px; text-align: center; color: var(--text2); font-size: 0.85rem; padding-top: 20px; border-top: 1px solid var(--border); }
+  @media (max-width: 600px) { .arch-flow { flex-direction: column; } .arch-arrow { transform: rotate(90deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1><span>CreatorMatch</span> 部署指南</h1>
+  <p class="subtitle">AI海外达人精准匹配平台 · 从零到生产环境的完整部署步骤</p>
+
+  <!-- 架构图 -->
+  <h2>🏗 部署架构</h2>
+  <div class="arch">
+    <div class="arch-flow">
+      <div class="arch-node">
+        <div class="label">代码托管</div>
+        <div class="name">🐙 GitHub</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="label">前端部署</div>
+        <div class="name">▲ Vercel</div>
+      </div>
+      <div class="arch-arrow">⇄</div>
+      <div class="arch-node">
+        <div class="label">后端 API</div>
+        <div class="name">🚀 Render</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-node">
+        <div class="label">数据存储</div>
+        <div class="name">🗄 SQLite</div>
+      </div>
+    </div>
+    <p style="margin-top:16px; color: var(--text2); font-size:0.85rem;">
+      用户 → Vercel（静态前端） ←→ HTTPS → Render（Flask API） → SQLite
+    </p>
+  </div>
+
+  <!-- 准备工作 -->
+  <h2>📋 部署前检查清单</h2>
+  <ul class="checklist">
+    <li>
+      <span class="check-icon done">✓</span>
+      <div><strong>所有API密钥使用环境变量</strong> — <code>LLM_API_KEY</code>、<code>FRONTEND_ORIGIN</code> 均通过 env 注入，未硬编码</div>
+    </li>
+    <li>
+      <span class="check-icon done">✓</span>
+      <div><strong>前后端跨域配置</strong> — Flask-CORS 已配置，生产环境通过 <code>FRONTEND_ORIGIN</code> 精确控制</div>
+    </li>
+    <li>
+      <span class="check-icon done">✓</span>
+      <div><strong>健康检查端点</strong> — <code>GET /api/health</code> 已添加，Render 会自动探测</div>
+    </li>
+    <li>
+      <span class="check-icon done">✓</span>
+      <div><strong>SEO 优化</strong> — 标题/描述含"海外达人""TikTok达人""Instagram达人"关键词</div>
+    </li>
+    <li>
+      <span class="check-icon done">✓</span>
+      <div><strong>敏感文件已排除</strong> — <code>.gitignore</code> 已排除 <code>hunter.db</code>、<code>.env</code>、<code>__pycache__</code></div>
+    </li>
+    <li>
+      <span class="check-icon todo">⬜</span>
+      <div><strong>创建 GitHub 账号</strong> — 如果还没有，访问 <a href="https://github.com" style="color:var(--blue)">github.com</a> 注册</div>
+    </li>
+    <li>
+      <span class="check-icon todo">⬜</span>
+      <div><strong>注册 Render 账号</strong> — 访问 <a href="https://render.com" style="color:var(--blue)">render.com</a>，用 GitHub 账号登录</div>
+    </li>
+    <li>
+      <span class="check-icon todo">⬜</span>
+      <div><strong>注册 Vercel 账号</strong> — 访问 <a href="https://vercel.com" style="color:var(--blue)">vercel.com</a>，用 GitHub 账号登录</div>
+    </li>
+  </ul>
+
+  <!-- Step 1: GitHub -->
+  <h2>① 推送代码到 GitHub</h2>
+  <div class="step-grid">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h4>在 GitHub 创建新仓库</h4>
+      <p>访问 <a href="https://github.com/new" style="color:var(--blue)">github.com/new</a>，填写：</p>
+      <ul>
+        <li><strong>Repository name</strong>：<code>creatormatch</code>（或 globe-talent）</li>
+        <li><strong>Visibility</strong>：Public（Vercel/Render 免费层需要公开仓库）</li>
+        <li>❌ 不要勾选 "Add a README"（本地已有）</li>
+      </ul>
+      <p style="margin-top:8px">点击 <strong>Create repository</strong>，记住仓库 URL（如 <code>https://github.com/yourname/creatormatch</code>）</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h4>推送本地代码到 GitHub</h4>
+      <p>打开终端，在 <code>ai-hunter</code> 目录下运行：</p>
+      <pre><code># 替换 yourname 为你的 GitHub 用户名
+git remote add origin https://github.com/yourname/creatormatch.git
+git branch -M main
+git push -u origin main</code></pre>
+      <p>如果要求认证，使用 GitHub 的 Personal Access Token（Settings → Developer settings → Personal access tokens）</p>
+    </div>
+  </div>
+
+  <!-- Step 2: Render -->
+  <h2>② 部署后端到 Render</h2>
+  <div class="info-box">
+    💡 Render 免费层：每月 750 小时（单服务足够），不活跃时会休眠（15分钟后首次请求较慢），适合 MVP/演示使用。
+  </div>
+  <div class="step-grid">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h4>创建 Web Service</h4>
+      <ul>
+        <li>登录 <a href="https://render.com" style="color:var(--blue)">render.com</a> → <strong>New +</strong> → <strong>Web Service</strong></li>
+        <li>选择 <strong>Build and deploy from a Git repository</strong></li>
+        <li>连接 GitHub，选择 <code>creatormatch</code> 仓库</li>
+      </ul>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h4>配置部署参数</h4>
+      <table class="env-table" style="margin-top:8px">
+        <tr><th>设置项</th><th>填写值</th></tr>
+        <tr><td>Name</td><td>creatormatch-api</td></tr>
+        <tr><td>Region</td><td>Singapore（亚洲用户最快）</td></tr>
+        <tr><td>Branch</td><td>main</td></tr>
+        <tr><td>Root Directory</td><td>backend</td></tr>
+        <tr><td>Runtime</td><td>Python 3</td></tr>
+        <tr><td>Build Command</td><td>pip install -r requirements.txt</td></tr>
+        <tr><td>Start Command</td><td>gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120</td></tr>
+        <tr><td>Instance Type</td><td>Free</td></tr>
+      </table>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h4>添加环境变量</h4>
+      <p>在 <strong>Environment</strong> 选项卡添加：</p>
+      <table class="env-table" style="margin-top:8px">
+        <tr><th>变量名</th><th>值</th><th>必填</th></tr>
+        <tr><td>LLM_API_KEY</td><td>sk-xxxx（你的 API Key）</td><td><span class="tag optional">可选</span></td></tr>
+        <tr><td>LLM_API_BASE</td><td>https://api.openai.com/v1</td><td><span class="tag optional">可选</span></td></tr>
+        <tr><td>FRONTEND_ORIGIN</td><td>部署后填写 Vercel URL</td><td><span class="tag optional">可选</span></td></tr>
+        <tr><td>FLASK_ENV</td><td>production</td><td><span class="tag optional">可选</span></td></tr>
+      </table>
+      <p style="margin-top:8px; color:var(--text2)">⚠️ LLM_API_KEY 不填也能运行，只是搜索用规则引擎而非 AI 解析</p>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <h4>等待部署完成</h4>
+      <p>点击 <strong>Create Web Service</strong>，等待约 3-5 分钟。</p>
+      <p>部署成功后，记录你的 <strong>Render URL</strong>，格式如：</p>
+      <pre><code>https://creatormatch-api.onrender.com</code></pre>
+      <p>验证：访问 <code>https://creatormatch-api.onrender.com/api/health</code>，应返回：</p>
+      <pre><code>{"service": "CreatorMatch API", "status": "ok", "version": "1.0.0"}</code></pre>
+    </div>
+  </div>
+
+  <!-- Step 3: 更新前端 API URL -->
+  <h2>③ 更新前端 API 地址</h2>
+  <div class="step">
+    <h4>修改 frontend/index.html 中的后端 URL</h4>
+    <p>打开 <code>frontend/index.html</code>，找到第 997 行附近：</p>
+    <pre><code>// 将这行：
+return 'https://creatormatch-api.onrender.com/api';
+
+// 改为你实际的 Render URL：
+return 'https://你的服务名.onrender.com/api';</code></pre>
+    <p>修改后提交并推送：</p>
+    <pre><code>git add frontend/index.html
+git commit -m "fix: update backend API URL to Render deployment"
+git push</code></pre>
+  </div>
+
+  <!-- Step 4: Vercel -->
+  <h2>④ 部署前端到 Vercel</h2>
+  <div class="step-grid">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h4>导入 GitHub 仓库</h4>
+      <ul>
+        <li>登录 <a href="https://vercel.com" style="color:var(--blue)">vercel.com</a> → <strong>Add New → Project</strong></li>
+        <li>选择 <code>creatormatch</code> 仓库，点击 <strong>Import</strong></li>
+      </ul>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h4>配置部署参数</h4>
+      <table class="env-table" style="margin-top:8px">
+        <tr><th>设置项</th><th>填写值</th></tr>
+        <tr><td>Framework Preset</td><td>Other（不是 Next.js！）</td></tr>
+        <tr><td>Root Directory</td><td>frontend（点击 Edit 修改）</td></tr>
+        <tr><td>Build Command</td><td>（留空）</td></tr>
+        <tr><td>Output Directory</td><td>.（留空或填 .）</td></tr>
+      </table>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h4>完成部署</h4>
+      <p>点击 <strong>Deploy</strong>，等待约 1 分钟。</p>
+      <p>部署成功后，Vercel 会分配一个 URL，格式如：</p>
+      <pre><code>https://creatormatch.vercel.app
+# 或
+https://creatormatch-yourname.vercel.app</code></pre>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <h4>回到 Render 更新 CORS 配置</h4>
+      <p>将 Vercel URL 填入 Render 的 <code>FRONTEND_ORIGIN</code> 环境变量：</p>
+      <p>Render Dashboard → 你的服务 → <strong>Environment</strong> → 添加/更新：</p>
+      <pre><code>FRONTEND_ORIGIN = https://creatormatch.vercel.app</code></pre>
+      <p>Render 会自动重新部署，精确 CORS 控制生效。</p>
+    </div>
+  </div>
+
+  <!-- 绑定自定义域名 -->
+  <h2>🌐 绑定自定义域名（可选）</h2>
+  <div class="step-grid">
+    <div class="step">
+      <h4>Vercel 前端绑定域名</h4>
+      <ul>
+        <li>Project → <strong>Settings</strong> → <strong>Domains</strong></li>
+        <li>输入你的域名（如 <code>creatormatch.com</code>）</li>
+        <li>按提示在你的域名注册商添加 CNAME 或 A 记录</li>
+        <li>Vercel 自动签发 SSL 证书</li>
+      </ul>
+    </div>
+    <div class="step">
+      <h4>Render 后端绑定域名</h4>
+      <ul>
+        <li>Service → <strong>Settings</strong> → <strong>Custom Domain</strong></li>
+        <li>输入子域名（如 <code>api.creatormatch.com</code>）</li>
+        <li>添加 CNAME 记录指向 Render 提供的域名</li>
+        <li>更新前端中的 API URL 和 Render 的 FRONTEND_ORIGIN 环境变量</li>
+      </ul>
+    </div>
+  </div>
+  <div class="info-box">
+    💡 免费域名推荐：<a href="https://www.freenom.com" style="color:var(--blue)">Freenom</a>（.tk/.ml/.ga 免费）或 <a href="https://js.org" style="color:var(--blue)">js.org</a>（for JS项目）。Vercel 子域名本身就是永久免费的。
+  </div>
+
+  <!-- 环境变量汇总 -->
+  <h2>🔐 环境变量汇总</h2>
+  <table class="env-table">
+    <thead>
+      <tr><th>变量名</th><th>说明</th><th>示例值</th><th>设置位置</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>LLM_API_KEY</td>
+        <td>AI 解析 API Key，未设置时用规则引擎</td>
+        <td>sk-xxxxxxxxxxxx</td>
+        <td>Render 环境变量</td>
+      </tr>
+      <tr>
+        <td>LLM_API_BASE</td>
+        <td>API 端点（可用第三方代理）</td>
+        <td>https://api.openai.com/v1</td>
+        <td>Render 环境变量</td>
+      </tr>
+      <tr>
+        <td>FRONTEND_ORIGIN</td>
+        <td>Vercel URL，用于精确 CORS</td>
+        <td>https://creatormatch.vercel.app</td>
+        <td>Render 环境变量</td>
+      </tr>
+      <tr>
+        <td>FLASK_ENV</td>
+        <td>运行模式</td>
+        <td>production</td>
+        <td>Render 环境变量</td>
+      </tr>
+      <tr>
+        <td>PORT</td>
+        <td>Render 自动注入，无需手动设置</td>
+        <td>10000（自动）</td>
+        <td>Render 自动</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 常见问题 -->
+  <h2>❓ 常见问题排查</h2>
+  <div class="step-grid">
+    <div class="step">
+      <h4>🔴 Render 部署失败：ModuleNotFoundError</h4>
+      <p>检查 <code>requirements.txt</code> 是否包含所有依赖。在 Render Logs 中查看具体缺少什么包，添加到 requirements.txt 后重新推送。</p>
+    </div>
+    <div class="step">
+      <h4>🔴 前端请求报 CORS 错误</h4>
+      <p>1. 确认 Render 服务已成功启动<br>
+      2. 确认 <code>FRONTEND_ORIGIN</code> 填写了正确的 Vercel URL（不含尾部斜杠）<br>
+      3. 或临时将 FRONTEND_ORIGIN 留空（允许所有来源）进行调试</p>
+    </div>
+    <div class="step">
+      <h4>🟡 Render 冷启动慢（首次请求30秒）</h4>
+      <p>免费层不活跃时会休眠。解决方案：<br>
+      1. 接受冷启动延迟（仅第一次）<br>
+      2. 使用 <a href="https://uptimerobot.com" style="color:var(--blue)">UptimeRobot</a> 定时 ping API 保活<br>
+      3. 升级到 Render Starter（$7/月，不休眠）</p>
+    </div>
+    <div class="step">
+      <h4>🔴 Vercel 部署后 404 空白页</h4>
+      <p>确认 Root Directory 设置为 <code>frontend</code>（不是项目根目录）。在 Vercel Project Settings → General → Root Directory 中检查。</p>
+    </div>
+    <div class="step">
+      <h4>🟡 SQLite 数据在 Render 重启后丢失</h4>
+      <p>Render 免费层文件系统是临时的，每次部署/重启后 <code>hunter.db</code> 会重置。<br>
+      若需持久化：迁移至 <a href="https://neon.tech" style="color:var(--blue)">Neon（免费 PostgreSQL）</a> 或 Render PostgreSQL（免费层提供）。</p>
+    </div>
+    <div class="step">
+      <h4>🔴 邮件发送失败</h4>
+      <p>Gmail 需开启"两步验证"后使用"应用专用密码"，不能使用账号密码直接登录。QQ邮箱需在邮箱设置中开启 SMTP 并获取授权码。</p>
+    </div>
+  </div>
+
+  <!-- 持久化数据库升级 -->
+  <h2>🗄 升级为持久化数据库（推荐生产环境）</h2>
+  <div class="warn-box">
+    ⚠️ Render 免费层的 SQLite 数据会在重启后清空。如需正式使用，建议升级为 PostgreSQL。
+  </div>
+  <div class="step">
+    <h4>使用 Neon 免费 PostgreSQL（5分钟完成）</h4>
+    <ol style="padding-left:18px; color:var(--text2); font-size:0.9rem;">
+      <li>访问 <a href="https://neon.tech" style="color:var(--blue)">neon.tech</a> 注册，创建免费数据库</li>
+      <li>复制 Connection String（格式：<code>postgresql://user:pass@host/db</code>）</li>
+      <li>在 Render 环境变量添加 <code>DATABASE_URL</code></li>
+      <li>在 <code>requirements.txt</code> 添加 <code>psycopg2-binary</code></li>
+      <li>修改 <code>app.py</code> 的 <code>get_db()</code> 函数，检测 <code>DATABASE_URL</code> 决定使用 SQLite 还是 PostgreSQL</li>
+    </ol>
+  </div>
+
+  <div class="footer">
+    CreatorMatch · AI海外达人精准匹配平台 · 部署指南 v1.0<br>
+    生成于 2026年6月 · 如有问题请参考 README.md 或提交 GitHub Issue
+  </div>
+
+</div>
+</body>
+</html>
