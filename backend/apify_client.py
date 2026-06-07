@@ -156,10 +156,11 @@ class ApifyClient:
 
         search_query = " ".join(keywords[:5]) if keywords else "influencer"
 
+        # 使用更大的搜索限制（上限50），同时尝试两种搜索方式
         input_data = {
             "search": search_query,
             "searchType": "user",
-            "searchLimit": min(limit, 20),
+            "searchLimit": min(limit * 2, 50),
             "resultsType": "details"
         }
 

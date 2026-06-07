@@ -34,31 +34,67 @@ def _infer_niche(tags, bio, posts_text):
     return best_niche
 
 
-def _infer_country(region_text):
-    """从地区文本推断国家代码"""
-    region_lower = (region_text or "").lower()
+def _infer_country(region_or_bio_text):
+    """从地区文本+简介文本推断国家代码（增强版：同时检查城市、州、emoji国旗等）"""
+    text = (region_or_bio_text or "").lower()
+
+    # 国旗emoji → 国家代码
+    flag_map = {
+        "\U0001f1fa\U0001f1f8": "US", "\U0001f1ec\U0001f1e7": "UK",
+        "\U0001f1e8\U0001f1e6": "CA", "\U0001f1e6\U0001f1fa": "AU",
+        "\U0001f1eb\U0001f1f7": "FR", "\U0001f1e9\U0001f1ea": "DE",
+        "\U0001f1ef\U0001f1f5": "JP", "\U0001f1f0\U0001f1f7": "KR",
+        "\U0001f1f8\U0001f1ec": "SG", "\U0001f1f9\U0001f1ed": "TH",
+        "\U0001f1e6\U0001f1ea": "AE", "\U0001f1ea\U0001f1f8": "ES",
+        "\U0001f1f3\U0001f1f1": "NL", "\U0001f1f8\U0001f1ea": "SE",
+        "\U0001f1e7\U0001f1f7": "BR", "\U0001f1f2\U0001f1fd": "MX",
+        "\U0001f1ee\U0001f1e9": "ID", "\U0001f1ee\U0001f1f3": "IN",
+    }
+    for flag, code in flag_map.items():
+        if flag in text:
+            return code
+
+    # 国名 + 城市名 + 州名 → 国家代码
     country_map = {
-        "us": "US", "usa": "US", "united states": "US", "america": "US",
-        "uk": "UK", "united kingdom": "UK", "britain": "UK", "england": "UK",
-        "ca": "CA", "canada": "CA",
-        "au": "AU", "australia": "AU",
-        "fr": "FR", "france": "FR",
-        "de": "DE", "germany": "DE",
-        "jp": "JP", "japan": "JP",
-        "kr": "KR", "korea": "KR", "south korea": "KR",
-        "sg": "SG", "singapore": "SG",
-        "th": "TH", "thailand": "TH",
-        "ae": "AE", "uae": "AE", "dubai": "AE",
-        "es": "ES", "spain": "ES",
-        "nl": "NL", "netherlands": "NL",
-        "se": "SE", "sweden": "SE",
-        "br": "BR", "brazil": "BR",
-        "mx": "MX", "mexico": "MX",
-        "id": "ID", "indonesia": "ID",
-        "in": "IN", "india": "IN",
+        # US
+        "united states": "US", "usa": "US", "america": "US", "us": "US",
+        "los angeles": "US", "new york": "US", "miami": "US", "chicago": "US",
+        "houston": "US", "atlanta": "US", "dallas": "US", "san francisco": "US",
+        "sf": "US", "nyc": "US", "la ": "US", "california": "US", "texas": "US",
+        "florida": "US", "new jersey": "US", "washington": "US",
+        # UK
+        "united kingdom": "UK", "uk": "UK", "britain": "UK", "england": "UK",
+        "london": "UK", "manchester": "UK", "birmingham": "UK", "scotland": "UK",
+        # Canada
+        "canada": "CA", "ca": "CA", "toronto": "CA", "vancouver": "CA", "montreal": "CA",
+        # Australia
+        "australia": "AU", "au": "AU", "sydney": "AU", "melbourne": "AU", "brisbane": "AU",
+        # Europe
+        "france": "FR", "paris": "FR",
+        "germany": "DE", "berlin": "DE",
+        "spain": "ES", "barcelona": "ES", "madrid": "ES",
+        "netherlands": "NL", "amsterdam": "NL", "holland": "NL",
+        "sweden": "SE", "stockholm": "SE",
+        "italy": "IT", "milan": "IT", "rome": "IT",
+        # Asia
+        "japan": "JP", "tokyo": "JP", "osaka": "JP",
+        "south korea": "KR", "korea": "KR", "seoul": "KR",
+        "singapore": "SG", "sg": "SG",
+        "thailand": "TH", "bangkok": "TH",
+        "indonesia": "ID", "jakarta": "ID", "bali": "ID",
+        "india": "IN", "mumbai": "IN", "delhi": "IN",
+        "philippines": "PH", "manila": "PH",
+        "malaysia": "MY", "kuala lumpur": "MY",
+        "vietnam": "VN", "ho chi minh": "VN",
+        # Middle East
+        "uae": "AE", "dubai": "AE", "abu dhabi": "AE",
+        "saudi": "SA", "riyadh": "SA",
+        # Latin America
+        "brazil": "BR", "brasil": "BR", "sao paulo": "BR", "rio": "BR",
+        "mexico": "MX", "mexico city": "MX",
     }
     for key, code in country_map.items():
-        if key in region_lower:
+        if key in text:
             return code
     return "US"  # default
 
@@ -147,7 +183,7 @@ def transform_tiktok(raw):
     bio = author.get("signature", "") or ""
     posts_text = " ".join(p.get("text", "") for p in posts[:5])
     niche = _infer_niche(tags, bio, posts_text)
-    country = _infer_country(author.get("region", "") or "")
+    country = _infer_country((author.get("region", "") or "") + " " + bio)
     price = _estimate_price(followers, float(engagement["engagement_rate"].replace("%", "")))
 
     return {
@@ -156,6 +192,7 @@ def transform_tiktok(raw):
         "nickname": f"@{author.get('name', 'unknown')}",
         "real_name": author.get("nickName", "") or author.get("name", ""),
         "avatar": author.get("avatar", ""),
+        "profile_url": f"https://www.tiktok.com/@{author.get('name', '')}",
         "followers": _format_number(followers),
         "followers_num": followers,
         "avg_likes": _format_number(engagement["avg_likes"]),
@@ -164,6 +201,7 @@ def transform_tiktok(raw):
         "engagement_rate": engagement["engagement_rate"],
         "price_usd": price,
         "price_display": f"${price:,}",
+        "price_note": "基于粉丝量+互动率的行业基准估算，实际价格以沟通为准",
         "tags": tags,
         "region": author.get("region", "未知"),
         "country": country,
@@ -218,7 +256,8 @@ def transform_instagram(raw):
             tags.append(niche_name)
 
     niche = _infer_niche(tags, bio, "")
-    country = _infer_country(profile.get("location", "") or "")
+    location_hint = (profile.get("location", "") or "") + " " + bio
+    country = _infer_country(location_hint)
     price = _estimate_price(followers, est_er)
 
     return {
@@ -227,6 +266,7 @@ def transform_instagram(raw):
         "nickname": f"@{username}",
         "real_name": full_name,
         "avatar": profile.get("profilePicUrl", ""),
+        "profile_url": f"https://www.instagram.com/{username}/",
         "followers": _format_number(followers),
         "followers_num": followers,
         "avg_likes": _format_number(avg_likes),
@@ -235,6 +275,7 @@ def transform_instagram(raw):
         "engagement_rate": f"{est_er}%",
         "price_usd": price,
         "price_display": f"${price:,}",
+        "price_note": "基于粉丝量+互动率的行业基准估算，实际价格以沟通为准",
         "tags": tags,
         "region": profile.get("location", "未知"),
         "country": country,

@@ -266,6 +266,8 @@
     .inf-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; border: 2px solid var(--border2); overflow: hidden; }
     .inf-meta { flex: 1; min-width: 0; }
     .inf-nickname { font-weight: 700; font-size: 15px; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .profile-link { font-size: 11px; color: var(--accent); text-decoration: none; margin-left: 6px; opacity: 0.8; transition: opacity 0.2s; }
+    .profile-link:hover { opacity: 1; text-decoration: underline; }
     .inf-region { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
     .inf-tier { display: inline-block; border-radius: 5px; padding: 1px 7px; font-size: 10px; font-weight: 700; margin-top: 4px; }
     .tier-head { background: rgba(168,85,247,.15); color: #c084fc; }
@@ -297,6 +299,11 @@
     .price-usd { font-size: 16px; font-weight: 700; color: var(--text); }
     .price-cny { font-size: 12px; color: var(--text3); }
     .price-label { font-size: 10px; color: var(--text3); }
+    .price-note { font-size: 10px; color: var(--text3); font-style: italic; margin-top: 2px; }
+    .price-note:hover { color: var(--text2); cursor: help; }
+    .datasource-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 2px 7px; font-size: 10px; font-weight: 700; }
+    .datasource-apify { background: rgba(16,185,129,.15); color: var(--green); border: 1px solid rgba(16,185,129,.3); }
+    .datasource-local { background: rgba(245,158,11,.15); color: var(--yellow); border: 1px solid rgba(245,158,11,.3); }
 
     /* Risk Badge */
     .risk-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
@@ -692,9 +699,15 @@
                 <div :class="['inf-rank', idx < 3 ? 'top3' : '']">{{ idx + 1 }}</div>
                 <div class="inf-avatar">{{ avatarEmoji(inf) }}</div>
                 <div class="inf-meta">
-                  <div class="inf-nickname">{{ inf.nickname }}</div>
+                  <div class="inf-nickname">
+                    {{ inf.nickname }}
+                    <a v-if="inf.profile_url" :href="inf.profile_url" target="_blank" class="profile-link" :title="'前往达人主页'">🔗</a>
+                  </div>
                   <div class="inf-region">📍 {{ inf.region }}</div>
                   <span :class="['inf-tier', tierClass(inf.tier)]">{{ inf.tier_label }}</span>
+                  <span :class="['datasource-badge', inf._source==='apify'?'datasource-apify':'datasource-local']" style="margin-top:4px">
+                    {{ inf._source==='apify' ? '✅ Apify真实数据' : '📦 模拟数据' }}
+                  </span>
                 </div>
               </div>
 
@@ -741,9 +754,12 @@
               <div class="inf-bottom-row">
                 <div class="price-risk-row">
                   <div class="price-block">
-                    <div class="price-label">预估报价</div>
+                    <div class="price-label" style="cursor:help" :title="inf.price_note || '基于粉丝量+互动率的行业基准估算'">💡 预估报价</div>
                     <div class="price-usd">{{ inf.price_usd_display || inf.price_display }}</div>
                     <div class="price-cny" v-if="inf.price_cny_display">≈ {{ inf.price_cny_display }}</div>
+                    <div class="price-note" :title="inf.price_note" v-if="inf.price_note" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                      {{ inf.price_note }}
+                    </div>
                   </div>
                   <!-- Risk badge with tooltip -->
                   <div class="risk-block">
