@@ -154,7 +154,7 @@ class ApifyClient:
             print(f"[Apify] Instagram 缓存命中 ({len(cached)}条)")
             return cached
 
-        search_query = " ".join(keywords[:5]) if keywords else "influencer"
+        search_query = " ".join(keywords[:8]) if keywords else "influencer"
 
         # 使用更大的搜索限制（上限50），同时尝试两种搜索方式
         input_data = {

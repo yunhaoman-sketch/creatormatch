@@ -331,7 +331,7 @@ def rule_based_parse(user_input: str) -> dict:
             break
 
     EXTRA_NICHE_MAP = {
-        "beauty": ["假发", "发套", "发型", "wig", "hair", "头发", "发", "护肤", "美妆", "彩妆", "化妆", "口红", "粉底", "眼影"],
+        "beauty": ["假发", "发套", "发型", "wig", "hair", "头发", "发", "护肤", "美妆", "彩妆", "化妆", "口红", "粉底", "眼影", "有机", "天然", "手工", "清洁", "纯净", "成分"],
         "fashion": ["服装", "衣服", "穿搭", "时尚", "鞋", "包", "配饰", "服饰"],
         "fitness": ["健身", "运动", "瑜伽", "减脂", "增肌", "蛋白粉"],
         "tech": ["手机", "耳机", "电脑", "数码", "充电", "电子", "智能"],
@@ -805,6 +805,16 @@ def search_influencers():
                 keywords = parsed.get("product_keywords", [])
                 niches = parsed.get("niche_categories", [])
                 search_terms = list(dict.fromkeys(keywords + niches))  # 去重保序
+
+                # 中文输入时自动补上品类的英文关键词（中文词IG/TT搜索不认）
+                has_chinese = any(any(ord(c) > 127 for c in t) for t in search_terms)
+                if has_chinese and niches:
+                    for niche in niches:
+                        if niche in NICHE_KEYWORDS:
+                            en_kws = [k for k in NICHE_KEYWORDS[niche] if all(ord(c) < 128 for c in k)]
+                            for ek in en_kws[:7]:
+                                if ek not in search_terms:
+                                    search_terms.append(ek)
 
                 if platform == "tiktok":
                     raw = client.search_tiktok_profiles(search_terms, limit * 3)

@@ -743,7 +743,9 @@ ALL_INFLUENCERS = TIKTOK_INFLUENCERS + INSTAGRAM_INFLUENCERS + XIAOHONGSHU_INFLU
 
 # 关键词->领域映射，用于AI匹配
 NICHE_KEYWORDS = {
-    "beauty": ["美妆", "护肤", "彩妆", "口红", "粉底", "眼影", "beauty", "makeup", "skincare", "cosmetic", "lipstick"],
+    "beauty": ["beauty", "makeup", "skincare", "organic", "natural", "clean", "vegan", "handmade",
+               "美妆", "护肤", "彩妆", "口红", "粉底", "眼影", "有机", "天然", "手工", "清洁", "纯净", "成分",
+               "cosmetic", "lipstick", "cruelty-free", "wellness"],
     "fitness": ["健身", "运动", "瑜伽", "减脂", "增肌", "fitness", "workout", "gym", "yoga", "sport"],
     "tech": ["数码", "科技", "手机", "电脑", "耳机", "充电", "tech", "gadget", "phone", "laptop", "electronics"],
     "food": ["美食", "食品", "零食", "饮料", "food", "snack", "drink", "beverage", "recipe", "cooking"],
